@@ -86,7 +86,7 @@ contract WeiController is WeiFundConfig {
 ```
 
 ### CampaignAccount
-`CampaignAccount.sol` --- This is a contribution endpoint for the campaign, that merely forwards transactions through the core WeiFund contract (and potentially into a token dispersal controller).
+`CampaignAccount.sol` --- This is a contribution endpoint for the campaign, that merely forwards transactions through the core WeiFund contract (and potentially into a token dispersal controller). This contract is mainly to utilize solidities fallback method, and redirect funds from a single address to a campaign hosted on the WeiFund core contract.
 
 #### Contract Interface:
 ```
@@ -99,8 +99,6 @@ contract CampaignAccount {
 
 ### CampaignRegistry
 `CampaignRegistry.sol` ---  This allows WeiFund campaign operators to register their third-party crowdfund with the WeiFund platform.
-
-This contract is mainly to utilize solidities fallback method, and redirect funds from a single address to a campaign hosted on the WeiFund core contract.
 
 #### Contract Interface:
 ```
