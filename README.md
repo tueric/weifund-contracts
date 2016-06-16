@@ -111,11 +111,11 @@ contract CampaignRegistry {
 ## Feature Contracts
 WeiFund has a set of external feature contracts that enable campaigns with certain features like IPFS integration, multi-beneficiaries and prediction market evaluation.
 
- 1. WeiHash -- ipfs hash registry for weifund campaigns
- 2. MultiService -- multi-beneficiaries contract
- 3. StaffPicks -- a simple staff picks contract
- 4. WeiFundTokenFactory -- an opinionated token factory for creating tokens for Weifund token dispersal controllers
- 5. CampaignRegistry -- a registry for third-party crowdfunding campaigns
+ 1. `WeiHash` -- ipfs hash registry for weifund campaigns
+ 2. `MultiService` -- multi-beneficiaries contract
+ 3. `StaffPicks` -- a simple staff picks contract
+ 4. `WeiFundTokenFactory` -- an opinionated token factory for creating tokens for Weifund token dispersal controllers
+ 5. `CampaignRegistry` -- a registry for third-party crowdfunding campaigns
 
 ## Future Designs
 The future design of the WeiFund contracts is to have WeiFund as a verified registry of crowdfunding campaigns. Where campaigns can be produced by anyone on any contract, and the verification of these campaigns is done by and through the WeiFund platform. This means that we will have a registry of valid campaign factories that we trust to disperse and reward crowdfunding beneficiaries and contributors with the correct amounts of ether and digital assets.
