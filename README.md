@@ -15,7 +15,7 @@ WeiFund is build on multiple interconnected smart-contracts. The main peices are
 ### The Core
 WeiFund.sol --- This is our core crowdfunding contract that contains all the core crowdfunding logic and extensible hooks.
 
-Contract Interface:
+#### Contract Interface:
 ```
 contract WeiFundInterface {
   function newCampaign(string _name, address _beneficiary, uint _fundingGoal, uint _expiry, address _config) returns (uint campaignID) {}
@@ -58,7 +58,7 @@ contract WeiFundInterface {
 ### WeiFund Campaign Hook Configuration
 WeiFundConfig.sol --- This is the main campaign config contract that provides outward facing hooks to connect WeiFund campaigns to things like token dispersal controllers.
 
-Contract Interface:
+#### Contract Interface:
 ```
 contract WeiFundConfig {
   function newCampaign(uint _campaignID, address _owner, uint _fundingGoal) {}
@@ -73,7 +73,7 @@ WeiController.sol --- This contains all the core token dispersal logic for a sin
 
 The token dispersal controller allows for "auto" token dispersal (which automatically sends tokens to campaign contributors), and "claim" token dispersal (which allows campaign contributors to claim their tokens once the campaign has completed).
 
-Contract Interface:
+#### Contract Interface:
 ```
 contract WeiController is WeiFundConfig {
   function WeiController (address _weifund, address _owner, address _token, uint _tokenValue, bool _autoDisperse) {}
@@ -88,7 +88,7 @@ contract WeiController is WeiFundConfig {
 ### CampaignAccount
 CampaignAccount.sol --- This is a contribution endpoint for the campaign, that merely forwards transactions through the core WeiFund contract (and potentially into a token dispersal controller).
 
-Contract Interface:
+#### Contract Interface:
 ```
 contract CampaignAccount {
   function CampaignAccount (address _weifund, uint _campaignID) {}
@@ -102,10 +102,10 @@ This contract is mainly to utilize solidities fallback method, and redirect fund
 ## Feature Contracts
 WeiFund has a set of external feature contracts that enable campaigns with certain features like IPFS integration, multi-beneficiaries and prediction market evaluation.
 
-1. WeiHash -- ipfs hash registry for weifund campaigns
-2. MultiService -- multi-beneficiaries contract
-3. StaffPicks -- a simple staff picks contract
-4. WeiFundTokenFactory -- an opinionated token factory for creating tokens for Weifund token dispersal controllers
+ 1. WeiHash -- ipfs hash registry for weifund campaigns
+ 2. MultiService -- multi-beneficiaries contract
+ 3. StaffPicks -- a simple staff picks contract
+ 4. WeiFundTokenFactory -- an opinionated token factory for creating tokens for Weifund token dispersal controllers
 
 ## Future Designs
 The future design of the WeiFund contracts is to have WeiFund as a verified registry of crowdfunding campaigns. Where campaigns can be produced by anyone on any contract, and the verification of these campaigns is done by and through the WeiFund platform. This means that we will have a registry of valid campaign factories that we trust to disperse and reward crowdfunding beneficiaries and contributors with the correct amounts of ether and digital assets.
