@@ -102,6 +102,14 @@ contract CampaignAccount {
 
 This contract is mainly to utilize solidities fallback method, and redirect funds from a single address to a campaign hosted on the WeiFund core contract.
 
+#### Contract Interface:
+```
+contract CampaignRegistry {
+  function register(address campaignAddress, bytes ipfsHash) returns (uint _campaignID) {}
+  event CampaignRegistered(address _campaignAddress, uint _campaignID);
+}
+```
+
 ## Feature Contracts
 WeiFund has a set of external feature contracts that enable campaigns with certain features like IPFS integration, multi-beneficiaries and prediction market evaluation.
 
