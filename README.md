@@ -13,7 +13,7 @@ WeiFund has a series of smart-contracts we use to power our crowdfunding platfor
 WeiFund is build on multiple interconnected smart-contracts. The main peices are: the core (which contains all crowdfunding logic and extensible hooks), the token dispersal controller (which contains all the token dispersal logic), and the campaign account (a contribution endpoint for the campaign).
 
 ### The Core
-WeiFund.sol --- This is our core crowdfunding contract that contains all the core crowdfunding logic and extensible hooks.
+`WeiFund.sol` --- This is our core crowdfunding contract that contains all the core crowdfunding logic and extensible hooks.
 
 #### Contract Interface:
 ```
@@ -56,7 +56,7 @@ contract WeiFundInterface {
 ```
 
 ### WeiFund Campaign Hook Configuration
-WeiFundConfig.sol --- This is the main campaign config contract that provides outward facing hooks to connect WeiFund campaigns to things like token dispersal controllers.
+`WeiFundConfig.sol` --- This is the main campaign config contract that provides outward facing hooks to connect WeiFund campaigns to things like token dispersal controllers.
 
 #### Contract Interface:
 ```
@@ -69,7 +69,7 @@ contract WeiFundConfig {
 ```
 
 ### Token Dispersal Controller (WeiController)
-WeiController.sol --- This contains all the core token dispersal logic for a single campaign. Tokens are issued to the controller to be dispersed to crowdfund contributors.
+`WeiController.sol` --- This contains all the core token dispersal logic for a single campaign. Tokens are issued to the controller to be dispersed to crowdfund contributors.
 
 The token dispersal controller allows for "auto" token dispersal (which automatically sends tokens to campaign contributors), and "claim" token dispersal (which allows campaign contributors to claim their tokens once the campaign has completed).
 
@@ -86,7 +86,7 @@ contract WeiController is WeiFundConfig {
 ```
 
 ### CampaignAccount
-CampaignAccount.sol --- This is a contribution endpoint for the campaign, that merely forwards transactions through the core WeiFund contract (and potentially into a token dispersal controller).
+`CampaignAccount.sol` --- This is a contribution endpoint for the campaign, that merely forwards transactions through the core WeiFund contract (and potentially into a token dispersal controller).
 
 #### Contract Interface:
 ```
@@ -97,6 +97,9 @@ contract CampaignAccount {
 }
 ```
 
+### CampaignRegistry
+`CampaignRegistry.sol` ---  This allows WeiFund campaign operators to register their third-party crowdfund with the WeiFund platform.
+
 This contract is mainly to utilize solidities fallback method, and redirect funds from a single address to a campaign hosted on the WeiFund core contract.
 
 ## Feature Contracts
@@ -106,6 +109,7 @@ WeiFund has a set of external feature contracts that enable campaigns with certa
  2. MultiService -- multi-beneficiaries contract
  3. StaffPicks -- a simple staff picks contract
  4. WeiFundTokenFactory -- an opinionated token factory for creating tokens for Weifund token dispersal controllers
+ 5. CampaignRegistry -- a registry for third-party crowdfunding campaigns
 
 ## Future Designs
 The future design of the WeiFund contracts is to have WeiFund as a verified registry of crowdfunding campaigns. Where campaigns can be produced by anyone on any contract, and the verification of these campaigns is done by and through the WeiFund platform. This means that we will have a registry of valid campaign factories that we trust to disperse and reward crowdfunding beneficiaries and contributors with the correct amounts of ether and digital assets.
