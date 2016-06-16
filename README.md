@@ -106,6 +106,7 @@ WeiFund has a set of external feature contracts that enable campaigns with certa
  4. `WeiFundTokenFactory` -- an opinionated token factory for creating tokens for Weifund token dispersal controllers
  5. `CampaignRegistry` -- a registry for third-party crowdfunding campaigns
 
+
  ### CampaignRegistry
  `CampaignRegistry.sol` ---  This allows WeiFund campaign operators to register their third-party crowdfund with the WeiFund platform.
 
