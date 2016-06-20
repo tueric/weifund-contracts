@@ -123,5 +123,7 @@ The future design of the WeiFund contracts is to have WeiFund as a verified regi
 
 This means the future designs will make WeiFund into a skinned campaign registry and factory mechanism. Virtually making token dispersal and crowdfunding into menial tasks both contractually and by investor experience.
 
+All campaigns on WeiFund will have a 50 thousand dollar stop gap to prevent large fund loss in the event of contractual or protocol level design flaws.
+
 ## Prediction Market Integration
 We believe a critical aspect of determining campaign success will be to use prediction markets to field if the campaign is a good idea or not (one that will success or surpass it's goals). These mechanisms will not only help campaigns field if their idea is good or bad, but also reward those who believed in the camapign from the first place (or those who rightfully believed it was not a good idea).
