@@ -1,5 +1,4 @@
 contract ClaimProxy {
-  address implementor;
 
   function ClaimProxy(address _implementor) {
     implementor = _implementor;
@@ -7,7 +6,11 @@ contract ClaimProxy {
 
   function claimBalance() {
     if(msg.sender == implementor) {
-      implementor.send(this.balance);
+      if(implementor.send(this.balance) == false){
+        throw;
+      }
     }
   }
+
+  address implementor;
 }

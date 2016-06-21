@@ -3,16 +3,6 @@ import "ClaimProxy.sol";
 import "owned.sol";
 
 contract Campaign is owned {
-  uint public expiry;
-  uint public owner;
-  uint public created;
-  uint public amountRaised;
-  uint public fundingGoal;
-  bool public paidOut;
-  address public beneficiary;
-  address[] public contributors;
-  mapping(address => uint) public contributions;
-  mapping(address => bool) public contributorMadeClaim;
 
   function Campaign(uint _expiry, uint _fundingGoal, address _beneficiary) {
     expiry = _expiry;
@@ -34,6 +24,7 @@ contract Campaign is owned {
       if(contributions[msg.sender] == 0) {
         contributors.push(msg.sender);
       }
+
       amountRaised += msg.value;
       contributions[msg.sender] = msg.value;
     } else {
@@ -47,7 +38,9 @@ contract Campaign is owned {
       && paidOut == false) {
       paidOut = true;
       address claimProxyAddress = new ClaimProxy(beneficiary);
-      claimProxyAddress.send(amountRaised);
+      if(claimProxyAddress.send(amountRaised) == false){
+        throw;
+      }
     } else {
       throw;
     }
@@ -61,9 +54,22 @@ contract Campaign is owned {
       && contributorMadeClaim[msg.sender] == false) {
       contributorMadeClaim[msg.sender] = true;
       address claimProxyAddress = new ClaimProxy(msg.sender);
-      claimProxyAddress.send(contributions[msg.sender]);
+      if(claimProxyAddress.send(contributions[msg.sender]) == false){
+        throw;
+      }
     } else {
       throw;
     }
   }
+
+  uint public expiry;
+  uint public owner;
+  uint public created;
+  uint public amountRaised;
+  uint public fundingGoal;
+  bool public paidOut;
+  address public beneficiary;
+  address[] public contributors;
+  mapping(address => uint) public contributions;
+  mapping(address => bool) public contributorMadeClaim;
 }

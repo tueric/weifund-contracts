@@ -382,7 +382,9 @@ contract WeiFund is WeiFundInterface {
     if(c.config != address(0))
       WeiFundConfig(c.config).payout(_campaignID, c.amountRaised);
 
-    c.beneficiary.send(c.amountRaised);
+    if(c.beneficiary.send(c.amountRaised) == false){
+      throw;
+    }
   }
 
   function operatorCampaignID(address _operator, uint _campaignIndex) public constant returns (uint) {

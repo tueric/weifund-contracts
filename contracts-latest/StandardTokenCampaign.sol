@@ -27,9 +27,9 @@ contract StandardTokenCampaign is Campaign {
 
   function claimStandardTokensOwed() public returns (uint tokensIssuedToContributor) {
     if(amountRaised > fundingGoal
-    && contributions[msg.sender] > 0
-    && token != address(0)
-    && contributorMadeClaim[msg.sender] == false) {
+      && contributions[msg.sender] > 0
+      && token != address(0)
+      && contributorMadeClaim[msg.sender] == false) {
       contributorMadeClaim[msg.sender] = true;
       tokensIssuedToContributor = contibutions[msg.sender] * tokenPrice;
       StandardToken(token).transfer(msg.sender, tokensIssuedToContributor);
