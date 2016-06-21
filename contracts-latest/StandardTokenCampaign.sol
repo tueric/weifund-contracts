@@ -1,6 +1,5 @@
 import "Campaign.sol";
 import "StandardToken.sol";
-import "ClaimProxy.sol";
 
 contract StandardTokenCampaign is Campaign {
   address public token;
@@ -23,12 +22,6 @@ contract StandardTokenCampaign is Campaign {
   function () {
     if(StandardToken(token).balanceOf(this) >= fundingGoal * tokenPrice) {
       contributeMsgValue();
-    }
-  }
-
-  function payoutToBeneficiary() public returns (address claimProxyAddress) {
-    if(StandardToken(token).balanceOf(this) >= fundingGoal * tokenPrice) {
-      return Campaign.payoutToBeneficiary();
     }
   }
 
