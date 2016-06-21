@@ -6,10 +6,14 @@ contract StandardTokenCampaign is Campaign {
   address public token;
   uint public tokenPrice;
 
-  function StandardTokenCampaign(uint _goal, uint _expiry, uint _created, uint _amountRaised, uint _fundingGoal, uint _paidOut, uint _tokenPrice, address _beneficiary, address _token) {
-    goal = _goal;
+  function StandardTokenCampaign(uint _expiry,
+    uint _amountRaised,
+    uint _fundingGoal,
+    uint _paidOut,
+    uint _tokenPrice,
+    address _beneficiary,
+    address _token) {
     expiry = _expiry;
-    created = _created;
     amountRaised = _amountRaised;
     fundingGoal = _fundingGoal;
     paidOut = _paidOut;

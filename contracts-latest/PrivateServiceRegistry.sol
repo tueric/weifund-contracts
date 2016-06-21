@@ -1,4 +1,5 @@
 contract PrivateServiceRegistry {
+  event ServiceRegistered(address _service, uint _serviceId);
   address[] public services;
   mapping(address => uint) public ids;
 
@@ -8,6 +9,7 @@ contract PrivateServiceRegistry {
     serviceId = services.length++;
     services[serviceId] = _service;
     ids[_service] = serviceId;
+    ServiceRegistered(_service, serviceId);
   }
 
   function isService(address _service) constant public returns (bool) {
