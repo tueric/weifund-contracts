@@ -14,15 +14,9 @@ contract Campaign is owned {
   mapping(address => uint) public contributions;
   mapping(address => bool) public contributorMadeClaim;
 
-  function Campaign(uint _expiry,
-    uint _amountRaised,
-    uint _fundingGoal,
-    uint _paidOut,
-    address _beneficiary) {
+  function Campaign(uint _expiry, uint _fundingGoal, address _beneficiary) {
     expiry = _expiry;
-    amountRaised = _amountRaised;
     fundingGoal = _fundingGoal;
-    paidOut = _paidOut;
     beneficiary = _beneficiary;
     created = now;
     owner = msg.sender;
