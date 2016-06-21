@@ -8,8 +8,8 @@ contract StandardTokenCampaign is Campaign {
 
   function StandardTokenCampaign(uint _expiry,
     uint _fundingGoal,
-    uint _tokenPrice,
     address _beneficiary,
+    uint _tokenPrice,
     address _token) {
     expiry = _expiry;
     fundingGoal = _fundingGoal;

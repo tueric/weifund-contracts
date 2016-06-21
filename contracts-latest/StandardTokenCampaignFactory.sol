@@ -3,17 +3,15 @@ import "PrivateServiceRegistry.sol";
 import "StandardToken.sol";
 
 contract StandardTokenCampaignFactory is PrivateServiceRegistry {
-  function createCampaign(uint _goal,
-    uint _expiry,
+  function createCampaign(uint _expiry,
     uint _fundingGoal,
-    uint _tokenPrice,
     address _beneficiary,
+    uint _tokenPrice,
     address _token) public returns (address campaignAddress) {
-    campaignAddress = new StandardTokenCampaign(_goal,
-      _expiry,
+    campaignAddress = new StandardTokenCampaign(_expiry,
       _fundingGoal,
-      _tokenPrice,
       _beneficiary,
+      _tokenPrice,
       _token);
     register(campaignAddress);
   }
