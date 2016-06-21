@@ -361,12 +361,13 @@ contract WeiFund is WeiFundInterface {
     if(donation.beneficiary != address(0))
     	receiver = donation.beneficiary;
 
-    receiver.send(donation.amountContributed);
     donation.refunded = true;
     Refunded(_campaignID, receiver, donation.amountContributed);
 
     if(c.config != address(0))
       WeiFundConfig(c.config).refund(_campaignID, donation.contributor, donation.amountContributed);
+
+    receiver.send(donation.amountContributed);
   }
 
   function payout(uint _campaignID) public {
@@ -375,12 +376,13 @@ contract WeiFund is WeiFundInterface {
     if(!isSuccess(_campaignID) || c.paidOut)
         throw;
 
-    c.beneficiary.send(c.amountRaised);
     c.paidOut = true;
     PaidOut(_campaignID, msg.sender, c.amountRaised);
 
     if(c.config != address(0))
       WeiFundConfig(c.config).payout(_campaignID, c.amountRaised);
+
+    c.beneficiary.send(c.amountRaised);
   }
 
   function operatorCampaignID(address _operator, uint _campaignIndex) public constant returns (uint) {
