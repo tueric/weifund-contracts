@@ -2,8 +2,6 @@ import "Campaign.sol";
 import "StandardToken.sol";
 
 contract StandardTokenCampaign is Campaign {
-  address public token;
-  uint public tokenPrice;
 
   function StandardTokenCampaign(uint _expiry,
     uint _fundingGoal,
@@ -25,16 +23,23 @@ contract StandardTokenCampaign is Campaign {
     }
   }
 
-  function claimStandardTokensOwed() public returns (uint tokensIssuedToContributor) {
+  function claimStandardTokensOwed() public returns (uint tokenAmountClaimed) {
     if(amountRaised > fundingGoal
       && contributions[msg.sender] > 0
       && token != address(0)
       && contributorMadeClaim[msg.sender] == false) {
       contributorMadeClaim[msg.sender] = true;
-      tokensIssuedToContributor = contibutions[msg.sender] * tokenPrice;
-      StandardToken(token).transfer(msg.sender, tokensIssuedToContributor);
+      tokenAmountClaimed = contibutions[msg.sender] * tokenPrice;
+      StandardTokensClaimed(tokenAmountClaimed, msg.sender);
+
+      StandardToken(token).transfer(msg.sender, tokenAmountClaimed);
     } else {
       throw;
     }
   }
+
+  event StandardTokensClaimed(uint _tokenAmountClaimed, uint _claimRecipient);
+
+  address public token;
+  uint public tokenPrice;
 }

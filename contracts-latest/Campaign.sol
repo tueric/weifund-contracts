@@ -27,6 +27,7 @@ contract Campaign is owned {
 
       amountRaised += msg.value;
       contributions[msg.sender] = msg.value;
+      ContributionMade(msg.sender, msg.value, amountRaised);
     } else {
       throw;
     }
@@ -38,7 +39,9 @@ contract Campaign is owned {
       && paidOut == false) {
       paidOut = true;
       address claimProxyAddress = new ClaimProxy(beneficiary);
-      if(claimProxyAddress.send(amountRaised) == false){
+      if(claimProxyAddress.send(amountRaised)){
+        BeneficiaryPayout(claimProxyAddress, amountRaised, beneficiary);
+      } else {
         throw;
       }
     } else {
@@ -54,13 +57,20 @@ contract Campaign is owned {
       && contributorMadeClaim[msg.sender] == false) {
       contributorMadeClaim[msg.sender] = true;
       address claimProxyAddress = new ClaimProxy(msg.sender);
-      if(claimProxyAddress.send(contributions[msg.sender]) == false){
+      uint refundAmount = contributions[msg.sender];
+      if(claimProxyAddress.send(refundAmount)){
+        RefundClaimed(claimProxyAddress, refundAmount, msg.sender);
+      } else {
         throw;
       }
     } else {
       throw;
     }
   }
+
+  event ContributionMade (address _contributorAddress, uint _contributionAmount, uint _amountRaised);
+  event BeneficiaryPayoutClaimed (address _claimProxyAddress, uint _payoutAmount, address _beneficiaryTarget);
+  event RefundClaimed (address _claimProxyAddress, uint _refundAmount, address _refundTarget);
 
   uint public expiry;
   uint public owner;
