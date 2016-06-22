@@ -19,7 +19,7 @@ contract Campaign is owned {
   function contributeMsgValue() private {
     if(msg.value > 0
       && amountRaised < fundingGoal
-      && amountRaised + msg.value < fundingGoal
+      && amountRaised + msg.value <= fundingGoal
       && paidOut == false) {
       if(contributions[msg.sender] == 0) {
         contributors.push(msg.sender);
