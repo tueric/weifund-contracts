@@ -1,16 +1,14 @@
-contract ClaimProxy {
+import "owned.sol";
 
-  function ClaimProxy(address _implementor) {
-    implementor = _implementor;
+contract ClaimProxy is owned {
+
+  function ClaimProxy(address _owner) {
+    owner = _owner;
   }
 
-  function claimBalance() {
-    if(msg.sender == implementor) {
-      if(implementor.send(this.balance) == false){
-        throw;
-      }
+  function claimBalance() onlyowner {
+    if(owner.send(this.balance)){
+      suicide();
     }
   }
-
-  address implementor;
 }

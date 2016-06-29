@@ -24,7 +24,7 @@ contract StandardTokenCampaign is Campaign {
   }
 
   function claimStandardTokensOwed() public returns (uint tokenAmountClaimed) {
-    if(amountRaised > fundingGoal
+    if(amountRaised >= fundingGoal
       && contributions[msg.sender] > 0
       && token != address(0)
       && contributorMadeClaim[msg.sender] == false) {
