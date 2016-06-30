@@ -3,21 +3,19 @@ contract DispersalCalculatorInterface {
 }
 
 contract DispersalCalculator is DispersalCalculatorInterface {
-  function DispersalCalculator(uint[] _settings) {
-    settings = _settings;
-  }
-
-  enum Dispersal {
-    Expiry,
-    Multiplier,
-    Divisor
+  function DispersalCalculator(uint _expiry, uint _multiplier, uint _divisor) {
+    expiry = _expiry;
+    multiplier = _multiplier;
+    divisor = _divisor;
   }
 
   function amount(uint _weiValue) returns (uint dispersalAmount) {
-    if(settings[uint(Dispersal.Expiry)] <= now) {
-      return _weiValue * settings[uint(Dispersal.Multiplier)] / settings[uint(Dispersal.Divisor)];
+    if(expiry <= now) {
+      return _weiValue * multiplier / divisor;
     }
   }
 
-  uint[] settings;
+  uint expiry;
+  uint multiplier;
+  uint divisor;
 }
