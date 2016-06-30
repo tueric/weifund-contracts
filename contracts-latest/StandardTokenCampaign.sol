@@ -1,12 +1,13 @@
 import "Campaign.sol";
 import "StandardToken.sol";
+import "DispersalCalculator.sol";
 
 contract StandardTokenCampaign is Campaign {
 
   function StandardTokenCampaign(uint _expiry,
     uint _fundingGoal,
     address _beneficiary,
-    uint _tokenPrice,
+    address _dispersalCalculator,
     address _token) {
     expiry = _expiry;
     fundingGoal = _fundingGoal;
@@ -14,7 +15,7 @@ contract StandardTokenCampaign is Campaign {
     created = now;
     creator = msg.sender;
     token = _token;
-    tokenPrice = _tokenPrice;
+    dispersal = DispersalCalculator(_dispersalCalculator);
   }
 
   function () {
@@ -29,10 +30,11 @@ contract StandardTokenCampaign is Campaign {
       && token != address(0)
       && contributorMadeClaim[msg.sender] == false) {
       contributorMadeClaim[msg.sender] = true;
-      tokenAmountClaimed = contibutions[msg.sender] * tokenPrice;
-      StandardTokensClaimed(tokenAmountClaimed, msg.sender);
+      tokenAmountClaimed = dispersal.amount(contibutions[msg.sender]);
 
-      StandardToken(token).transfer(msg.sender, tokenAmountClaimed);
+      if(StandardToken(token).transfer(msg.sender, tokenAmountClaimed)){
+        StandardTokensClaimed(tokenAmountClaimed, msg.sender);
+      }
     } else {
       throw;
     }
@@ -41,5 +43,5 @@ contract StandardTokenCampaign is Campaign {
   event StandardTokensClaimed(uint _tokenAmountClaimed, uint _claimRecipient);
 
   address public token;
-  uint public tokenPrice;
+  DispersalCalculator public dispersal;
 }
