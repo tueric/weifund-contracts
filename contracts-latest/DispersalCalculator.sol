@@ -15,7 +15,7 @@ contract DispersalCalculator is DispersalCalculatorInterface {
     }
   }
 
-  uint expiry;
-  uint multiplier;
-  uint divisor;
+  uint public expiry;
+  uint public multiplier;
+  uint public divisor;
 }
