@@ -1,6 +1,5 @@
 import "StandardTokenCampaign.sol";
 import "PrivateServiceRegistry.sol";
-import "StandardToken.sol";
 
 contract StandardTokenCampaignFactory is PrivateServiceRegistry {
 

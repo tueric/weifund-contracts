@@ -1,10 +1,11 @@
 {
   "name": "weifund-contracts",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "The WeiFund core contracts",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "dapple test",
+    "build": "dapple build"
   },
   "repository": {
     "type": "git",
@@ -15,13 +16,14 @@
     "contracts",
     "ethereum"
   ],
-  "author": "= <=>",
+  "author": "Nick Dodson <thenickdodson@gmail.com>",
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/WeiFund/weifund-contracts/issues"
   },
   "homepage": "https://github.com/WeiFund/weifund-contracts#readme",
   "devDependencies": {
+    "dapple": "^0.7.2",
     "ethereumjs-testrpc": "^2.0.8"
   }
 }

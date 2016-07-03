@@ -10,7 +10,7 @@ contract CampaignDataRegistry {
     }
   }
 
-  CampaignDataRegistered(address _campaignAddress);
+  event CampaignDataRegistered(address _campaignAddress);
   mapping(address => bytes) public data;
   address[] public campaigns;
 }

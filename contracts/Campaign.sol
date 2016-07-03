@@ -1,33 +1,24 @@
-import "StandardToken.sol";
 import "ClaimProxy.sol";
 import "owned.sol";
 
 contract Campaign is owned {
-
-  function Campaign(uint _expiry, uint _fundingGoal, address _beneficiary) {
-    expiry = _expiry;
-    fundingGoal = _fundingGoal;
-    beneficiary = _beneficiary;
-    created = now;
-    owner = msg.sender;
-  }
-
   function () {
     contributeMsgValue();
   }
 
-  function contributeMsgValue() private {
+  function contributeMsgValue() public returns (bool contributionMade) {
     if(msg.value > 0
-      && amountRaised < fundingGoal
       && amountRaised + msg.value <= fundingGoal
-      && paidOut == false) {
+      && !paidOut) {
       if(contributions[msg.sender] == 0) {
         contributors.push(msg.sender);
       }
 
-      amountRaised += msg.value;
-      contributions[msg.sender] = msg.value;
-      ContributionMade(msg.sender, msg.value, amountRaised);
+      uint valueContributed = msg.value;
+      amountRaised += valueContributed;
+      contributions[msg.sender] += valueContributed;
+      contributionMade = true;
+      ContributionMade(msg.sender, valueContributed, amountRaised);
     } else {
       throw;
     }
@@ -35,12 +26,11 @@ contract Campaign is owned {
 
   function payoutToBeneficiary () public returns (address claimProxyAddress) {
     if(amountRaised >= fundingGoal
-      && msg.sender == beneficiary
       && paidOut == false) {
       paidOut = true;
-      address claimProxyAddress = new ClaimProxy(beneficiary);
+      claimProxyAddress = address(new ClaimProxy(beneficiary));
       if(claimProxyAddress.send(amountRaised)){
-        BeneficiaryPayout(claimProxyAddress, amountRaised, beneficiary);
+        BeneficiaryPayoutClaimed(claimProxyAddress, amountRaised, beneficiary);
       } else {
         throw;
       }
@@ -56,7 +46,7 @@ contract Campaign is owned {
       && contributions[msg.sender] > 0
       && contributorMadeClaim[msg.sender] == false) {
       contributorMadeClaim[msg.sender] = true;
-      address claimProxyAddress = new ClaimProxy(msg.sender);
+      claimProxyAddress = address(new ClaimProxy(msg.sender));
       uint refundAmount = contributions[msg.sender];
       if(claimProxyAddress.send(refundAmount)){
         RefundClaimed(claimProxyAddress, refundAmount, msg.sender);
@@ -68,12 +58,15 @@ contract Campaign is owned {
     }
   }
 
+  function numContributors() constant public returns (uint) {
+    return contributors.length;
+  }
+
   event ContributionMade (address _contributorAddress, uint _contributionAmount, uint _amountRaised);
   event BeneficiaryPayoutClaimed (address _claimProxyAddress, uint _payoutAmount, address _beneficiaryTarget);
   event RefundClaimed (address _claimProxyAddress, uint _refundAmount, address _refundTarget);
 
   uint public expiry;
-  uint public owner;
   uint public created;
   uint public amountRaised;
   uint public fundingGoal;

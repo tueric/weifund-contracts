@@ -1,6 +1,6 @@
 contract PrivateServiceRegistry {
 
-  function register(address _service) private return (uint serviceId) {
+  function register(address _service) internal returns (uint serviceId) {
     if(isService(_service)) throw;
 
     serviceId = services.length++;

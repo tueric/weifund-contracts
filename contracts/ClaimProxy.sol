@@ -8,7 +8,7 @@ contract ClaimProxy is owned {
 
   function claimBalance() onlyowner {
     if(owner.send(this.balance)){
-      suicide();
+      suicide(owner);
     }
   }
 }
