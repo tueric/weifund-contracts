@@ -78,17 +78,17 @@ contract ClaimProxy {
 Many campaigns will want a custom token dispersal algorithm. This can be accomplished by creating your own DispersalCalculator contract and using it for your campaigns. However, this does present many different attack vectors for contributors. See the `Known Attack Vectors, Pitfalls and Solutions` section for more details. WeiFund hopes to present a variety of DispersalCalculator algorithms to meet design demand for most token crowdsales on Ethereum.
 
 ## Campaign Success
-WeiFund campaigns generally defines campaign success as: campaign `X` reaching funding goal `Y` before expiry `Z`. However, some campaigns may choose to do an open crowdsale, where a campaign expiry but no funding goal is defined.
+WeiFund campaigns generally defines campaign success as: campaign `X` reaching funding goal `Y` before expiry `Z`. However, some campaigns may choose to do an open crowdsale, where a campaign defines an expiry for token claims but no funding goal.
 
 ## Options for Token Campaign Contributors
-Campaign contributors can either claim their token reward or, in the event of campaign failure, reclaim their contribution amount. The process for these options is as follows:
+Campaign contributors can either claim their token reward (if the campaign is a success) or, in the event of campaign failure, reclaim their contribution amount. The process for these options is as follows:
 
-### Under Campaign Success
+### Under A Campaign Success
  1. Contributor `C` sends ether to campaign `A` (by calling `contributeMsgValue`)
  2. Campaign `A` reaches its funding goal before `A`'s expiry
- 2. Contributor `C` now claims their owed tokens from `A`  (by calling  `claimTokensOwed`) and can no longer claim any refund (as no refunds are owed)
+ 3. Contributor `C` now claims their owed tokens from `A`  (by calling  `claimTokensOwed`) and can no longer claim any refund (as no refunds are owed)
 
- ### Under Campaign Failure
+### Under A Campaign Failure
  1. Contributor `C` sends ether to campaign `B` (by calling `contributeMsgValue`)
  2. Campaign `B` does not reach its funding goal by the alloted time, campaign `B` expires
  3. Contributor `C` creates `ClaimProxy` refund for their contribution to campaign `B` (by calling `claimRefundOwed`)
