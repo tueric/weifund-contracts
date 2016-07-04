@@ -5,6 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "dapple test",
+    "browserify": "browserify --s WeiFundContracts index.js -o dist/weifund-contracts.js",
     "build": "dapple build"
   },
   "repository": {
@@ -23,6 +24,7 @@
   },
   "homepage": "https://github.com/WeiFund/weifund-contracts#readme",
   "devDependencies": {
+    "browserify": "^13.0.1",
     "dapple": "^0.7.2",
     "ethereumjs-testrpc": "^2.0.8"
   }

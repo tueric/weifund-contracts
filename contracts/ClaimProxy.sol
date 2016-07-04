@@ -1,7 +1,10 @@
 import "owned.sol";
 
-contract ClaimProxy is owned {
+contract ClaimProxyInterface {
+  function claimBalance();
+}
 
+contract ClaimProxy is owned {
   function ClaimProxy(address _owner) {
     owner = _owner;
   }

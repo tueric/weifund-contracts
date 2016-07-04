@@ -2,7 +2,11 @@ import "Campaign.sol";
 import "StandardToken.sol";
 import "DispersalCalculator.sol";
 
-contract StandardTokenCampaign is Campaign {
+contract StandardTokenCampaignInterface {
+  function claimTokensOwed() public returns (uint tokenAmountClaimed);
+}
+
+contract StandardTokenCampaign is StandardTokenCampaignInterface,Campaign {
   function StandardTokenCampaign(uint _expiry,
     uint _fundingGoal,
     address _beneficiary,
@@ -18,31 +22,37 @@ contract StandardTokenCampaign is Campaign {
   }
 
   function contributeMsgValue() public returns (bool contributionMade) {
-    if(StandardToken(token).balanceOf(this) >= dispersal.amount(fundingGoal)) {
-      return Campaign.contributeMsgValue();
-    } else {
-      throw;
-    }
-  }
-
-  function claimStandardTokensOwed() public returns (uint tokenAmountClaimed) {
-    if(amountRaised >= fundingGoal
-      && contributions[msg.sender] > 0
-      && token != address(0)
-      && contributorMadeClaim[msg.sender] == false) {
-      contributorMadeClaim[msg.sender] = true;
-      tokenAmountClaimed = dispersal.amount(contributions[msg.sender]);
-
-      if(StandardToken(token).transfer(msg.sender, tokenAmountClaimed)){
-        StandardTokensClaimed(tokenAmountClaimed, msg.sender);
+    uint tokensToDisperse = dispersal.amount(msg.value, created);
+    if(StandardToken(token).balanceOf(this) >= (tokensToDisperse + tokensToBeDispersed)
+      && tokensToDisperse > 0) {
+      if(Campaign.contributeMsgValue()){
+        tokensOwed[msg.sender] = tokensToDisperse;
+        tokensToBeDispersed += tokensToDisperse;
       }
     } else {
       throw;
     }
   }
 
-  event StandardTokensClaimed(uint _tokenAmountClaimed, address _claimRecipient);
+  function claimTokensOwed() public returns (uint tokenAmountClaimed) {
+    if(amountRaised >= fundingGoal
+      && contributions[msg.sender].amount > 0
+      && token != address(0)
+      && !contributions[msg.sender].claimed) {
+      contributions[msg.sender].claimed = true;
 
+      if(StandardToken(token).transfer(msg.sender, tokensOwed[msg.sender])){
+        TokensClaimed(tokenAmountClaimed, msg.sender);
+      }
+    } else {
+      throw;
+    }
+  }
+
+  event TokensClaimed(uint _tokenAmountClaimed, address _claimRecipient);
+
+  mapping(address => uint) public tokensOwed;
+  uint public tokensToBeDispersed;
   address public token;
   DispersalCalculator public dispersal;
 }

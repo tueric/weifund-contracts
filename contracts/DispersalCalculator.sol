@@ -1,5 +1,5 @@
 contract DispersalCalculatorInterface {
-  function amount(uint _weiValue) constant returns (uint dispersalAmount);
+  function amount(uint _contributionValue, uint _contributionCreated) constant returns (uint dispersalAmount);
 }
 
 contract DispersalCalculator is DispersalCalculatorInterface {
@@ -9,9 +9,9 @@ contract DispersalCalculator is DispersalCalculatorInterface {
     divisor = _divisor;
   }
 
-  function amount(uint _weiValue) constant returns (uint dispersalAmount) {
+  function amount(uint _contributionValue, uint _contributionCreated) constant returns (uint dispersalAmount) {
     if(expiry <= now) {
-      return _weiValue * multiplier / divisor;
+      return _contributionValue * multiplier / divisor;
     }
   }
 
