@@ -1,14 +1,14 @@
-import "owned.sol";
+import "Owned.sol";
 
-contract StaffPicks is owned {
+contract StaffPicks is Owned {
 
-  function register(address _campaignAddress) onlyowner {
-    activePicks[_campaignAddress] = true;
-    pickedCampaigns.push(_campaignAddress);
+  function register(address _campaign) onlyowner {
+    activePicks[_campaign] = true;
+    pickedCampaigns.push(_campaign);
   }
 
-  function deactivate(address _campaignAddress) onlyowner {
-    activePicks[_campaignAddress] = false;
+  function deactivate(address _campaign) onlyowner {
+    activePicks[_campaign] = false;
   }
 
   mapping(address => bool) public activePicks;

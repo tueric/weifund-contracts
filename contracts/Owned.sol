@@ -1,5 +1,5 @@
-contract owned {
-  function owned() {
+contract Owned {
+  function Owned() {
     owner = msg.sender;
   }
 

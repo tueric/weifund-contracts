@@ -105,16 +105,16 @@ WeiFund standard and standard token campaign contracts handle all critical state
 ### Attack Vector: Non-Standard Dispersal Calculator Mechanisms
 If a project uses a non-standard dispersal mechanism, this may present potential attack vectors as non-vetted code can interact with the main campaign mechanisms. Dispersal calculation is done at the time of contribution, to prevent calculation spoofing (calculating a different amount from the initial calculation).
 
-## Attack Vector: Not enough tokens to disperse
+### Attack Vector: Not enough tokens to disperse
 A token campaign may not have enough token balance to disperse to contributors in order for the campaign to succeed. Enough tokens must be issued to the campaign before hand, in order to ensure contributors can claim the tokens received. Campaign contributions are halted if, given the dispersal calculation, there are not enough tokens to disperse to contributors (`campaign token balance` >= (`total tokens to be dispersed` + `tokens to be dispersed to contributor`)).
 
-## Attack Vector: Malicious (non-standard) Token Contracts
+### Attack Vector: Malicious (non-standard) Token Contracts
 Using custom or non-standard token contracts that follow the `StandardToken` API, may present several attack vectors on campaign contracts that disperse such tokens. In order to prevent this, we must ensure that tokens are created by verifiable token factories and that the  token code is vetted before starting and contributing to campaigns.
 
-## Attack Vector: Unforeseen Contract or Compiler Bugs
+### Attack Vector: Unforeseen Contract or Compiler Bugs
 It may be the case that campaigns are created with contract or compiler bugs we simply do not know about currently. In order to limit the damage of such bugs, we must inform contributors and projects of the risks of using these contracts, and attempt to enforce (either by community engagement or the UI) reasonable campaign goals and limitations on WeiFund created campaigns. This way, if things go wrong, the damage can be minimized by virtue of limiting fund raising ceilings. Naturally, we respect any campaign that wants to exceed reasonable limitations, but we will attempt to inform contributors of the risks.
 
-## Attack Vector: Malicious Third-Party Contract Interaction
+### Attack Vector: Malicious Third-Party Contract Interaction
 The `StandardTokenCampaign` interacts with two, potentially malicious contracts: the campaign's token `DispersalCalculator` and its `StandardToken`. Either of these contracts could be created with malicious code inside. The best way to prevent contributors from potentially malicous attacks are:
   1. inform them on the origin, design and bytecode of these contracts
   2. inform the user on contract factory information

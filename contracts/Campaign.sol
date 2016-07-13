@@ -1,93 +1,41 @@
-import "ClaimProxy.sol";
-import "owned.sol";
+contract Campaign {
 
-contract CampaignInterface {
-  function contributeMsgValue() public returns (bool contributionMade);
-  function payoutToBeneficiary() public returns (address claimProxyAddress);
-  function claimRefundOwed() public returns (address claimProxyAddress);
-  function numContributors() constant public returns (uint);
-}
+  /// @notice use to determine the beneficiary destination for the campaign
+  /// @return the beneficiary address that will receive the campaign payout
+  function beneficiary() constant returns(address) {}
 
-contract Campaign is owned, CampaignInterface {
-  function () {
-    contributeMsgValue();
-  }
+  /// @notice the time at which the campaign fails or succeeds
+  /// @return the uint unix timestamp at which time the campaign expires
+  function expiry() constant returns(uint256 timestamp) {}
 
-  function contributeMsgValue() public returns (bool contributionMade) {
-    if(msg.value > 0
-      && amountRaised + msg.value <= fundingGoal
-      && !paidOut) {
-      if(contributions[msg.sender].amount == 0) {
-        contributors.push(msg.sender);
-      }
-      uint valueContributed = msg.value;
-      amountRaised += valueContributed;
-      contributions[msg.sender] = Contribution({
-        amount: contributions[msg.sender].amount + valueContributed,
-        claimed: false,
-        created: now
-      });
-      ContributionMade(msg.sender, valueContributed, amountRaised);
-      return true;
-    } else {
-      throw;
-    }
-  }
+  /// @notice the goal the campaign must reach in order for it to succeed
+  /// @return the campaign funding goal specified in wei as a uint256
+  function fundingGoal() constant returns(uint256 amount) {}
 
-  function payoutToBeneficiary () public returns (address claimProxyAddress) {
-    if(amountRaised >= fundingGoal
-      && paidOut == false) {
-      paidOut = true;
-      claimProxyAddress = address(new ClaimProxy(beneficiary));
-      if(claimProxyAddress.send(amountRaised)){
-        BeneficiaryPayoutClaimed(claimProxyAddress, amountRaised, beneficiary);
-      } else {
-        throw;
-      }
-    } else {
-      throw;
-    }
-  }
+  /// @notice was the campaign proceedes paid out to the beneficiary
+  /// @return a bool value that specifies whether the campaign was paid out or not
+  function paidOut() constant returns(bool successfully) {}
 
-  function claimRefundOwed() public returns (address claimProxyAddress) {
-    if(amountRaised < fundingGoal
-      && !paidOut
-      && now > expiry
-      && contributions[msg.sender].amount > 0
-      && contributions[msg.sender].claimed == false) {
-      contributions[msg.sender].claimed = true;
-      claimProxyAddress = address(new ClaimProxy(msg.sender));
-      uint refundAmount = contributions[msg.sender].amount;
-      if(claimProxyAddress.send(refundAmount)){
-        RefundClaimed(claimProxyAddress, refundAmount, msg.sender);
-      } else {
-        throw;
-      }
-    } else {
-      throw;
-    }
-  }
+  /// @notice the amount contributed by a contributor specified in wei
+  /// @return a uint256 value that specifies the amount of ether sent by a single contributor
+  function amountContributedBy(address _contributor) constant returns (uint256 amountContributed);
 
-  function numContributors() constant public returns (uint) {
-    return contributors.length;
-  }
+  /// @notice has the contributor claimed their refund or reward
+  /// @return a bool value: did the contributor make thier reward/refund claim or not
+  function claimMadeBy(address _contributor) constant returns (bool claimWasMade);
 
-  event ContributionMade (address _contributorAddress, uint _contributionAmount, uint _amountRaised);
-  event BeneficiaryPayoutClaimed (address _claimProxyAddress, uint _payoutAmount, address _beneficiaryTarget);
-  event RefundClaimed (address _claimProxyAddress, uint _refundAmount, address _refundTarget);
+  /// @notice the main campaign contribution method
+  function contributeMsgValue();
 
-  struct Contribution {
-    uint amount;
-    bool claimed;
-    uint created;
-  }
+  /// @notice payout the campaign contract balance to the beneficiary via a ClaimProxy contract
+  /// @return the address of the ClaimProxy contract, that the beneficiary can claim the funds from
+  function payoutToBeneficiary() returns (address claimProxy);
 
-  uint public expiry;
-  uint public created;
-  uint public amountRaised;
-  uint public fundingGoal;
-  bool public paidOut;
-  address public beneficiary;
-  address[] public contributors;
-  mapping(address => Contribution) public contributions;
+  /// @notice claim the refund owed to the msg.sender address via a claim proxy
+  /// @return the address of the newly created ClaimProxy at which the funds are made available and the amount refunded to the ClaimProxy contract
+  function claimRefundOwed() returns (address claimProxy, uint256 refundAmount);
+
+  event ContributionMade (address _contributor);
+  event BeneficiaryPayoutClaimed (address _claimProxy, uint256 _payoutAmount);
+  event ContributorRefundClaimed (address _claimProxy, uint256 _refundAmount, address _contributor);
 }
