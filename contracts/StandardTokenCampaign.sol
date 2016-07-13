@@ -5,6 +5,10 @@ import "Token.sol";
 
 contract StandardTokenCampaign is TokenCampaign, StandardCampaign {
   function () {
+    contributeMsgValue();
+  }
+
+  function contributeMsgValue() {
     contributionCreated[msg.sender] = now;
     StandardCampaign.contributeMsgValue();
   }
