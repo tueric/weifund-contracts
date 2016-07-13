@@ -4,7 +4,7 @@ import "Owned.sol";
 
 contract StandardCampaign is Owned, Campaign {
   function () {
-    contributeMsgValue();
+    throw;
   }
 
   modifier reachedFundingGoal {

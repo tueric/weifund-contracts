@@ -5,7 +5,7 @@ import "Token.sol";
 
 contract StandardTokenCampaign is TokenCampaign, StandardCampaign {
   function () {
-    contributeMsgValue();
+    throw;
   }
 
   function contributeMsgValue() {
