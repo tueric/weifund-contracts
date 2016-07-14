@@ -14,5 +14,6 @@ contract HumanStandardTokenCampaignFactory is PrivateServiceRegistry {
         _beneficiary,
         _fundingGoal,
         _expiry));
+      register(humanStandardTokenCampaign);
     }
 }

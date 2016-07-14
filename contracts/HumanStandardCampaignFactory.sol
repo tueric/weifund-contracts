@@ -10,5 +10,6 @@ contract HumanStandardCampaignFactory is PrivateServiceRegistry {
         _beneficiary,
         _fundingGoal,
         _expiry));
+      register(humanStandardCampaign);
     }
 }
