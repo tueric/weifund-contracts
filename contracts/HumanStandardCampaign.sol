@@ -1,5 +1,5 @@
-import "StandardCampaign.sol";
 import "Named.sol";
+import "StandardCampaign.sol";
 
 contract HumanStandardCampaign is Named, StandardCampaign {
   function HumanStandardCampaign(string _name,
