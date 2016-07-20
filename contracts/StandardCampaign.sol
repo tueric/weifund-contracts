@@ -5,6 +5,9 @@ import "Owned.sol";
 contract StandardCampaign is Owned, Campaign {
   // assume default standard campaign contribute msg value abi
   string public contributeMethodABI = "contributeMsgValue()";
+  address public beneficiary;
+  uint256 public expiry;
+  uint256 public fundingGoal;
 
   /// @dev Fallback function always fails.
   function () {
@@ -16,7 +19,7 @@ contract StandardCampaign is Owned, Campaign {
    */
   modifier crowdfundHasNotExpired() {
     // Check crowdfunding is not over.
-    if (now < expiry) {
+    if (now > expiry) {
       throw;
     }
     _
@@ -24,15 +27,15 @@ contract StandardCampaign is Owned, Campaign {
 
   modifier crowdfundHasExpired() {
     // Check crowdfunding period is over.
-    if (now > expiry) {
+    if (now < expiry) {
       throw;
     }
     _
   }
 
-  modifier crowdfundHasReachedFundingGoal() {
+  modifier crowdfundHasSucceeded() {
     // Check if crowdfund has reached it's funding goal
-    if (this.balance > fundingGoal) {
+    if (now > expiry && this.balance < fundingGoal) {
       throw;
     }
     _
