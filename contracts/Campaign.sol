@@ -1,7 +1,23 @@
 contract Campaign {
-  /// @notice use to determine the contribution method abi
+  /// @notice the campaign interface version
+  /// @return the version metadata
+  function version() constant returns(string) {}
+
+  /// @notice the campaign name
+  /// @return contractual metadata which specifies the campaign name as a string
+  function name() constant returns(string) {}
+
+  /// @notice use to determine the contribution method abi/structure
   /// @return will return a string that is the exact contributeMethodABI
   function contributeMethodABI() constant returns(string) {}
+
+  /// @notice use to determine the contribution method abi
+  /// @return will return a string that is the exact contributeMethodABI
+  function refundMethodABI() constant returns(string) {}
+
+  /// @notice use to determine the contribution method abi
+  /// @return will return a string that is the exact contributeMethodABI
+  function payoutMethodABI() constant returns(string) {}
 
   /// @notice use to determine the beneficiary destination for the campaign
   /// @return the beneficiary address that will receive the campaign payout
@@ -15,11 +31,12 @@ contract Campaign {
   /// @return the campaign funding goal specified in wei as a uint256
   function fundingGoal() constant returns(uint256 amount) {}
 
-  /// @dev Allows to withdraw funding to beneficiary ClaimProxy contract after campaign expires
-  /// @return the address of the claimProxy where funds can be dispersed to the beneficiary
-  function payoutToBeneficiary() returns (address claimProxy);
+  /// @notice the goal the campaign must reach in order for it to succeed
+  /// @return the campaign funding goal specified in wei as a uint256
+  function amountRaised() constant returns(uint256 amount) {}
 
   // Campaign events
   event ContributionMade (address _contributor);
-  event BeneficiaryPayoutClaimed (address _claimProxy, uint256 _payoutAmount);
+  event RefundPayoutClaimed(address _payoutDestination, uint256 _payoutAmount);
+  event BeneficiaryPayoutClaimed (address _payoutDestination, uint256 _payoutAmount);
 }

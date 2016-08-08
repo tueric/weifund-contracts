@@ -1,12 +1,16 @@
 {
   "name": "weifund-contracts",
-  "version": "0.1.2",
+  "version": "0.1.3",
   "description": "The WeiFund core contracts",
   "main": "index.js",
   "scripts": {
-    "test": "dapple test",
-    "browserify": "browserify --s WeiFundContracts index.js -o dist/weifund-contracts.js",
-    "build": "dapple build"
+    "build:contracts": "dapple build",
+    "build:deploy": "node ./deploy.js",
+    "build:browserify": "browserify --s WeiFundContracts index.js -o dist/weifund-contracts.js",
+    "build": "npm run build:contracts && npm run build:deploy && npm run build:browserify",
+    "test:solidity": "dapple test",
+    "test:js": "tape ./contracts/**/*.js",
+    "test": "npm run test:solidity && npm run test:js"
   },
   "repository": {
     "type": "git",
@@ -25,7 +29,13 @@
   "homepage": "https://github.com/WeiFund/weifund-contracts#readme",
   "devDependencies": {
     "browserify": "^13.0.1",
-    "dapple": "^0.7.2",
-    "ethereumjs-testrpc": "^2.0.8"
+    "ethdeploy": "^0.1.2",
+    "ethdeploy-cli": "0.0.5",
+    "ethdeploy-provider-http": "^0.1.0",
+    "ethdeploy-provider-zero-client": "^0.1.7",
+    "ethereumjs-testrpc": "^2.0.8",
+    "ethereumjs-tx": "^1.1.2",
+    "ethereumjs-util": "^4.5.0",
+    "tape": "^4.6.0"
   }
 }

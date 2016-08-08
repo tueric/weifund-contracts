@@ -1,6 +1,10 @@
-import "Owned.sol";
+import "Owner.sol";
 
-contract StaffPicks is Owned {
+contract StaffPicks is Owner {
+
+  function () {
+    throw;
+  }
 
   function register(address _campaign) onlyowner {
     activePicks[_campaign] = true;

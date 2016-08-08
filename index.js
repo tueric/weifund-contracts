@@ -1,3 +1,7 @@
-const contracts_module = require('/lib/js_module.js');
+const classes_module = require('./lib/classes.json');
+const environments_module = require('./lib/environments.json');
 
-module.exports = contracts_module;
+module.exports = {
+  classes: classes_module,
+  environments: environments_module,
+};
