@@ -6,7 +6,7 @@ contract CampaignCurationRegistry {
     }
 
     if (approvals[msg.sender][_campaignAddress] == false) {
-      approvedAddresses.push(_campaignAddress);
+      approvedAddresses[msg.sender].push(_campaignAddress);
       approvals[msg.sender][_campaignAddress] = true;
     }
   }
