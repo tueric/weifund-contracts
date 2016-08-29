@@ -15,9 +15,9 @@ contract StandardRefundCampaign is StandardCampaign {
 
   function claimRefundOwed(uint256 _contributionID) atStageOr(uint(Stages.CrowdfundFailure)) validRefundClaim(_contributionID) returns (address balanceClaim) {
     Contribution refundContribution = contributions[_contributionID];
+    refundsClaimed[_contributionID] = true;
     balanceClaim = address(new BalanceClaim(refundContribution.sender));
     if (balanceClaim.send(refundContribution.value)){
-      refundsClaimed[_contributionID] = true;
       RefundPayoutClaimed(balanceClaim, refundContribution.value);
     } else {
       throw;

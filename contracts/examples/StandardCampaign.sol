@@ -11,7 +11,7 @@ contract StandardCampaign is Owner, Campaign {
   modifier atStageOr(uint256 _stage) {
     if (now < expiry) {
       stage = uint256(Stages.CrowdfundOperational);
-    } else if(expiry > now && amountRaised >= fundingGoal) {
+    } else if(expiry >= now && amountRaised >= fundingGoal) {
       stage = uint256(Stages.CrowdfundSuccess);
     } else {
       stage = uint256(Stages.CrowdfundFailure);
@@ -24,7 +24,7 @@ contract StandardCampaign is Owner, Campaign {
   }
 
   function () {
-    throw;
+    contributeMsgValue();
   }
 
   function contributeMsgValue() atStageOr(uint(Stages.CrowdfundOperational)) returns (uint256 contributionID) {
@@ -81,6 +81,7 @@ contract StandardCampaign is Owner, Campaign {
   mapping(address => uint256[]) public contributionsBySender;
 
   string public name;
+  string public version = "1.0.0";
   string public contributeMethodABI = "contributeMsgValue():(uint256 contributionID)";
   string public payoutMethodABI = "payoutToBeneficiary():(uint256 amountClaimed)";
 }
