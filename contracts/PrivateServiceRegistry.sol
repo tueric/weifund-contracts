@@ -6,6 +6,10 @@ contract PrivateServiceRegistry {
     }
   }
 
+  function () {
+    throw;
+  }
+
   function register(address _service) internal returns (uint serviceId) {
     if (isService(_service)) {
       throw;
@@ -21,7 +25,8 @@ contract PrivateServiceRegistry {
     return true;
   }
 
-  event ServiceRegistered(address _service);
   address[] public services;
   mapping(address => uint) public ids;
+
+  event ServiceRegistered(address _service);
 }

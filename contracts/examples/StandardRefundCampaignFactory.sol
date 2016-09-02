@@ -2,6 +2,10 @@ import "examples/StandardRefundCampaign.sol";
 import "PrivateServiceRegistry.sol";
 
 contract StandardRefundCampaignFactory is PrivateServiceRegistry {
+  function () {
+    throw;
+  }
+
   function newStandardRefundCampaign(string _name,
     uint256 _expiry,
     uint256 _fundingGoal,
