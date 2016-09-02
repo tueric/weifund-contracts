@@ -12,8 +12,7 @@ contract Blacklist is Owner {
   }
 
   function whitelist(address _campaign) onlyowner {
-    blacklist[_campaign] = false;
-    delete blacklistedCampaigns[_campaign];
+    blacklisted[_campaign] = false;
   }
 
   mapping(address => bool) public blacklisted;

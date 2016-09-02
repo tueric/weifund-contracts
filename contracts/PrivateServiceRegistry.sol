@@ -1,7 +1,7 @@
 contract PrivateServiceRegistry {
 
   modifier isRegisteredService(address _service) {
-    if (services[ids[_service]] != address(0) && _service != address(0)) {
+    if (services[ids[_service]] == _service && _service != address(0)) {
       _
     }
   }
@@ -11,10 +11,6 @@ contract PrivateServiceRegistry {
   }
 
   function register(address _service) internal returns (uint serviceId) {
-    if (isService(_service)) {
-      throw;
-    }
-
     serviceId = services.length++;
     services[serviceId] = _service;
     ids[_service] = serviceId;

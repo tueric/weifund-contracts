@@ -13,7 +13,6 @@ contract StaffPicks is Owner {
 
   function deactivate(address _campaign) onlyowner {
     activePicks[_campaign] = false;
-    delete pickedCampaigns[_campaign];
   }
 
   mapping(address => bool) public activePicks;

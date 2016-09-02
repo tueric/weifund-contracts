@@ -12,13 +12,17 @@ contract User {
   }
 }
 
-contract StandardCampaignTest is Test {
+contract StandardRefundCampaignFactoryTest is Test {
   StandardRefundCampaignFactory target;
 
   function test_refundStandardRefundCampaignFactory() {
+    target = new StandardRefundCampaignFactory();
+
     // build new user
     User user = new User();
     user.send(1000);
-    address newCampaignAddress = user.newCampaign(address(target), "Nick", now + 100000, 300, msg.sender);
+
+    address newCampaignAddress = user.newCampaign(address(target), "Nick", now + 100000, 300, address(user));
+    assertTrue(bool(newCampaignAddress != address(0)));
   }
 }
