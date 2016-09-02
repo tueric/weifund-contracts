@@ -6,7 +6,7 @@ contract User {
     uint256 _expiry,
     uint256 _fundingGoal,
     address _beneficiary) returns (address) {
-    return address(new StandardCampaign(_name, _expiry, _fundingGoal, _beneficiary));
+    return address(new StandardCampaign(_name, _expiry, _fundingGoal, _beneficiary, msg.sender));
   }
 
   function newContribution(address _campaign, uint256 _value) returns (uint) {

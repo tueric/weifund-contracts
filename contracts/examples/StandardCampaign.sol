@@ -8,26 +8,26 @@ contract StandardCampaign is Owner, Campaign {
     CrowdfundSuccess
   }
 
-  modifier atStageOr(uint256 _stage) {
+  modifier atStageOr(uint256 _expectedStage) {
     if (now < expiry) {
       stage = uint256(Stages.CrowdfundOperational);
-    } else if(expiry >= now && amountRaised >= fundingGoal) {
-      stage = uint256(Stages.CrowdfundSuccess);
-    } else {
+    } else if(now >= expiry && amountRaised < fundingGoal) {
       stage = uint256(Stages.CrowdfundFailure);
+    } else if(now >= expiry && amountRaised >= fundingGoal) {
+      stage = uint256(Stages.CrowdfundSuccess);
     }
 
-    if (stage != _stage) {
+    if (stage != _expectedStage) {
       throw;
     }
     _
   }
-
+  
   function () {
     contributeMsgValue();
   }
 
-  function contributeMsgValue() atStageOr(uint(Stages.CrowdfundOperational)) returns (uint256 contributionID) {
+  function contributeMsgValue() atStageOr(uint(Stages.CrowdfundOperational)) public returns (uint256 contributionID) {
     contributionID = contributions.length++;
     contributions[contributionID] = Contribution({
         sender: msg.sender,
@@ -39,7 +39,7 @@ contract StandardCampaign is Owner, Campaign {
     ContributionMade(msg.sender);
   }
 
-  function payoutToBeneficiary() atStageOr(uint(Stages.CrowdfundSuccess)) returns (uint256 amountClaimed) {
+  function payoutToBeneficiary() atStageOr(uint(Stages.CrowdfundSuccess)) public returns (uint256 amountClaimed) {
     amountClaimed = this.balance;
     if (!beneficiary.send(amountClaimed)) {
       throw;
@@ -50,12 +50,13 @@ contract StandardCampaign is Owner, Campaign {
   function StandardCampaign(string _name,
     uint256 _expiry,
     uint256 _fundingGoal,
-    address _beneficiary) {
+    address _beneficiary,
+    address _owner) {
     name = _name;
     expiry = _expiry;
     fundingGoal = _fundingGoal;
     beneficiary = _beneficiary;
-    owner = msg.sender;
+    owner = _owner;
   }
 
   function totalContributions() public constant returns (uint256 amount) {
