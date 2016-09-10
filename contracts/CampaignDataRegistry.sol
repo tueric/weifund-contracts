@@ -16,15 +16,19 @@ contract CampaignDataRegistryInterface {
 
 contract CampaignDataRegistry is CampaignDataRegistryInterface {
 
-  function () {
-    throw;
-  }
-
   modifier senderIsCampaignOwner(address _campaign) {
+    // if the owner of the campaign is the sender
     if(Owner(_campaign).owner() != msg.sender) {
       throw;
     }
+
+    // otherwise, carry on with normal state changing logic
     _
+  }
+
+  /// @notice inavalidate fallback method support
+  function () {
+    throw;
   }
 
   function register(address _campaign, bytes _data) senderIsCampaignOwner(_campaign) {

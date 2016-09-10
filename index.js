@@ -18,6 +18,8 @@ const environments_module = {
 
 function contractFactoryFunction(abi) {
   return function (web3) {
+    console.log(web3);
+
     return web3.eth.contract(abi);
   };
 };
