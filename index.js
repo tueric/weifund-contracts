@@ -10,6 +10,9 @@ const environments_module = {
     CampaignDataRegistry: {
       address: '0x51ec7392def0584ccfd5ff29f35c0d286ad0373d',
     },
+    StandardCampaignFactory: {
+      address: '0xffb9adf430ed7a2d535eb3bd40981f1d8367bb8c',
+    },
     StandardRefundCampaignFactory: {
       address: '0xffb9adf430ed7a2d535eb3bd40981f1d8367bb8c',
     },
@@ -52,5 +55,6 @@ module.exports = {
   CampaignRegistry: contractFunction(JSON.parse(classes_module.CampaignRegistry.interface), 'CampaignRegistry'),
   CampaignDataRegistry: contractFunction(JSON.parse(classes_module.CampaignDataRegistry.interface), 'CampaignDataRegistry'),
   StaffPicks: contractFunction(JSON.parse(classes_module.StaffPicks.interface), 'StaffPicks'),
-  StandardRefundCampaignFactory: contractFunction(JSON.parse(classes_module.StandardRefundCampaignFactory.interface), 'StandardRefundCampaignFactory'),
+  StandardRefundCampaignFactory: contractFunction(JSON.parse(classes_module.StandardCampaignFactory.interface), 'StandardRefundCampaignFactory'),
+  StandardCampaignFactory: contractFunction(JSON.parse(classes_module.StandardCampaignFactory.interface), 'StandardCampaignFactory'),
 };
