@@ -5,11 +5,12 @@ const ethUtil = require('ethereumjs-util');
 // {"address": "0x000", "privateKey": "00000"}
 
 module.exports = {
-  environment: 'all',
+  environment: 'testrpc',
   deploymentModule: function(deploy, contracts, web3){
-    // deploy registries
-    deploy(contracts.CampaignDataRegistry);
-    deploy(contracts.CampaignRegistry);
+    // deploy registriesMyContract.at([address]);MyContract.at([address]);
+
+    // deploy(contracts.CampaignDataRegistry);
+    // deploy(contracts.CampaignRegistry);
 
     // get accounts
     web3.eth.getAccounts(function(accountsError, accountsResult){
@@ -19,9 +20,8 @@ module.exports = {
       }
 
       // deploy two campaigns for reference
-      deploy(contracts.CoffeeRunCampaign, 'Coffee Run Campaign', Math.floor(Date.now() / 1000) + 30000, 5000, accountsResult[0]);
-
-      deploy(contracts.IceCreamRunCampign, 'Ice Cream Run Campaign', Math.floor(Date.now() / 1000) + 22000, 2300, accountsResult[0]);
+//      deploy(contracts.CoffeeRunCampaign, 'Coffee Run Campaign', Math.floor(Date.now() / 1000) + 30000, 5000, accountsResult[0]);
+      deploy(contracts.IceCreamRunCampaign, 'Ice Cream Run Campaign', Math.floor(Date.now() / 1000) + 22000, 2300, accountsResult[0], accountsResult[0]);
     });
   },
   deploymentConfig: {
@@ -47,14 +47,16 @@ module.exports = {
             'from': 0, // a custom account
             'gas': 3135000, // some custom gas
           },
-          'IceCreamRunCampign': {
+          'IceCreamRunCampaign': {
             'class': 'StandardCampaign',
             'from': 0, // a custom account
             'gas': 3135000, // some custom gas
+            'expiry':100,
+            'name' : 'Icecreamrun',
           },
         },
       },
-      'morden': {
+      'morden1': {
         'provider': {
           'type': 'zero-client',
           getAccounts: function(cb) {
