@@ -1,9 +1,13 @@
 contract Owner {
+  function Owner() {
+    owner = msg.sender;
+  }
+
   modifier onlyowner() {
-    // only allow a message sender than is the owner
-    if (msg.sender == owner) {
-      _
-    }
+    if (msg.sender != owner)
+      throw;
+
+    _
   }
 
   address public owner;
