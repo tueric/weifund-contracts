@@ -18,16 +18,16 @@ const expect = chaithereum.chai.expect
 // we choose chaithereum web3 instance
 // NOTICE: chaithereum's reported accounts differ from that of external
 // TestRPC instance even after setting a new provider
-var web3 = chaithereum.web3;
+// var web3 = chaithereum.web3;
+var Web3 = require('web3');
+var web3 = new Web3(provider);
 
 // create an instance of web3 using the HTTP provider.
-var provider = new web3.providers.HttpProvider("http://localhost:8545");
+var provider = new Web3.providers.HttpProvider("http://localhost:8545");
 web3.setProvider(provider);
 
 // using a different web3 instance is possible, but currently auto deployment
 // is only enabled on an external testrpc
-//var Web3 = require('web3');
-//var web3 = new Web3(provider);
 
 //var TestRPC = require("ethereumjs-testrpc");
 // programmatic testrpc
@@ -107,6 +107,7 @@ const bv = function(bignumberval) {
 
 // generic promise of send transaction via instance method i
 const sendTransaction = function(from, to, amount, gas, i) {
+
   var d = q.defer();
   var ii = i || web3.eth;
   ii.sendTransaction({
@@ -119,6 +120,7 @@ const sendTransaction = function(from, to, amount, gas, i) {
     // "data": web3.fromAscii("hello")
   },
   function(err, res) {
+    debugger;
     if (err)
     console.error(err);
     if (res)
@@ -147,6 +149,7 @@ const getBalance = function(o) {
 
 // get promised balances for list of balances
 const getBalances = function(list) {
+  console.log("getBalances:",list);
   return q.allSettled(list.map(function(o) {
     return getBalance(o);
   }));
@@ -193,13 +196,17 @@ function send(method, params, callback) {
 };
 
 // promised evm increase time approach for time-dependent unit tests
-// TODO promised block number watcher
+// TODO a different method that implements a promised block number watcher
 const increaseTime = function(time) {
   const deferred = q.defer()
 
   provider.sendAsync({ method: 'evm_increaseTime', params: [time] }, function(res,err) {
+    console.log('res');
+    console.log(res);
     if (!err) {
       provider.sendAsync({ method: 'evm_mine'}, function(res1,err1) {
+        console.log('res1');
+        console.log(res1);
         if (!err1) {
           deferred.resolve();
         } else {
@@ -417,13 +424,14 @@ describe('StandardCampaign tests', function() {
   // TODO in progress
   // TODO see why timeout is not succeeding
   // TODO see why payout to beneficiary is not succeeding
-  it("checks that a campaign can reach its funding goal and pay out", function(done) {
+  it.only("checks that a campaign can reach its funding goal and pay out", function(done) {
+    this.timeout(20000);
+
     q()
+
     .then(()=>{
       return q.nbind(campaignInstance.expiry, campaignInstance)();
     }).then(clm('expiry:'))
-
-    // .then(o=>{ console.log("getstageat:" + con.getStageAt().toNumber()); })
 
     // assert that the stage is 0 (operational)
     .then(()=>{
@@ -431,51 +439,132 @@ describe('StandardCampaign tests', function() {
     })
     .then(clm('stage num:'))
     .then(function(res) { assert.ok(res.equals(0), 'Campaign stage is not set to operational'); })
-    // .fail(cle)
+    .fail(cle)
 
-    .then(o=>{ console.log("now:" + campaignInstance.getNow().toNumber()); })
-    .then(o=>{ console.log("funding goal:"+campaignInstance.fundingGoal().toNumber()); })
-    .then(o=>{ console.log("amount raised:"+campaignInstance.amountRaised().toNumber()); })
+    .then(()=>{
+      return q.nbind(campaignInstance.getNow,campaignInstance)();
+    }).then(clm('now:'))
+
+    .then(()=>{
+      return q.nbind(campaignInstance.fundingGoal, campaignInstance)();
+    })
+    .then(clm('funding goal:'))
+
+    .then(()=>{
+      return q.nbind(campaignInstance.amountRaised,campaignInstance)();
+    })
+    .then(clm('amount raised:'))
+
+
+    .then(()=>{
+      return getBalances(accounts);
+    })
+    .then(clm('balances01:'))
 
     // send an transaction that makes campaign reach funding goal
-    .then(getAccounts)
-    .then(cl)
-    .then(res=>{return sendTransaction(res[0],icampaign.address,1,.1,campaignInstance.contributeMsgValue);})
-    .then(cl)
+    .then(()=>{
+      return sendTransaction(accounts[0],icampaign.address,1,.1,campaignInstance.contributeMsgValue);
+    }).then(clm('transaction hash:'))
 
-    .then(o=>{ console.log("amount raised:"+campaignInstance.amountRaised().toNumber()); })
+    .then(()=>{
+      return getBalances(accounts);
+    })
+    .then(clm('balances02:'))
+
+    .then(()=>{
+      return q.nbind(campaignInstance.amountRaised,campaignInstance)();
+    }).then(clm('amount raised:'))
 
     // expire the campaign
-    // .then(()=> { try{ return increaseTime(2000000); } catch(e) {console.error(e); return 0;}})
+    .then(()=>{
+      return q.nbind(provider.sendAsync, provider, { method: 'evm_increaseTime', params: [2000000] })();
+    })
+    .then(clm('evm_increaseTime*:'))
 
-    .then(o=>{ console.log("getstageat:" + campaignInstance.getStageAt().toNumber()); })
-    .then(o=>{ console.log("now:" + campaignInstance.getNow().toNumber()); })
+    .then(()=>{
+      return q.nbind(provider.sendAsync, provider, { method: 'evm_mine' })();
+    })
+    .then(clm('evm_mine*:'))
+
+    .then(()=>{
+      return q.nbind(campaignInstance.getStageAt,campaignInstance)();
+    }).then(clm('getstageat:'))
+    .then((res)=>{ assert.ok(res.equals(2), 'Campaign stage is not set to not operational and goal reached'); })
+
+    .then(()=>{
+      return q.nbind(campaignInstance.getNow,campaignInstance)();
+    }).then(clm('getNow:'))
 
     // assert that the stage is 0 (operational, funding goal reached)
     // it should be this way because stage is only updated on a transaction call
     // not blockchain time or block property updates
     // However, it is suggested that a function be available to update the stage independently of transaction processing
-    // i.e.,
-    .then(o=>{ console.log(campaignInstance.stage().toNumber()); return campaignInstance.stage().toNumber() })
-    .then(cl)
-    .then(res=>{ assert.ok(res == 0, 'Campaign stage is not set to not operational and goal reached'); })
-    // .fail(cle)
+    .then(()=>{
+      return q.nbind(campaignInstance.stage, campaignInstance)();
+    })
+    .then(clm('stage:'))
+    .then(res=>{ assert.ok(res.equals(2), 'Campaign stage is not set to not operational and goal reached'); })
+    .fail(cle) // the assertion is not serious enough to stop
 
     // trigger the campaign stage to be updated, the only way to do that successfully right now is by being the owner and calling payout when successful
     // assert that a transaction receipt was issued
-    .then(()=>{ sendTransaction(accounts[0],icampaign.address,1,.1,campaignInstance.payoutToBeneficiary); })
-    .then(cl)
-    .then((res)=>{ assert.ok(res !== undefined, 'payout to beneficiary did not succeed with a transaction receipt'); })
-    // .fail(cle)
 
-    .then(o=>{ console.log("getstageat:" + campaignInstance.getStageAt().toNumber()); })
+    // problems start here
 
-    // assert that the stage is 2 (not operational, funding goal reached)
-    .then(o=>{ return campaignInstance.stage() })
-    .then((res)=>{ assert.ok(res.value == 2, 'Campaign stage is not set to not operational and goal reached'); })
+    .then(()=>{
+      var aa = campaignInstance.payoutToBeneficiary.apply(campaignInstance,[{ "from": accounts[0], "to":icampaign.address, "value":web3.toWei(1,'ether'), "gas":2000000 },cl]);
+      console.log('*********========================********');
+
+    })
+
+    .then(()=>{
+      return getBalances(accounts);
+    })
+    .then(clm('balances1:'))
+
+    .then(()=>{
+      return sendTransaction(accounts[0],icampaign.address,0,.1,campaignInstance.payoutToBeneficiary);
+    })
+    .then(clm)
+
+    .then(()=>{
+      return getBalances(accounts);
+    })
+    .then(clm('balances2:'))
+
+    .then(clm('payout sendtransaction tx hash:'))
+    .then((res)=>{
+      assert.ok(res, 'payoutToBeneficiary transaction did not issue transaction hash');
+    })
     .fail(cle)
 
-    .then(done);
+    // make a call to the method
+    // but this doesn't work
+    .then(()=>{
+      return q.nbind(campaignInstance.payoutToBeneficiary,campaignInstance)();
+    })
+    .then(clm('payout call tx hash:'))
+    .then((res)=>{ assert.ok(res, 'payoutToBeneficiary call did not issue transaction hash'); })
+    .fail(cle)
+
+    .then(()=>{
+      return q.nbind(campaignInstance.getStageAt,campaignInstance)();
+    }).then(clm('getStageAt:'))
+    .then((res)=>{ assert.ok(res.equals(2), 'Campaign stage is not set to not operational and goal reached'); })
+    .fail(cle)
+
+    // assert that the stage is 2 (not operational, funding goal reached)
+    .then(()=>{
+      return q.nbind(campaignInstance.stage, campaignInstance)();
+    }).then(clm('stage last:'))
+    .then((res)=>{ assert.ok(res.equals(2), 'Campaign stage is not set to not operational and goal reached'); })
+    .fail(cle)
+
+
+
+    .done(()=>{
+      done()
+    });
 
   });
 
@@ -605,77 +694,77 @@ describe('StandardCampaign tests', function() {
           console.log(err);
           d1.resolve(res);
         });
-      return d1.promise;
-    })
-    .then(cl0)
-    .done(done);
-  });
+        return d1.promise;
+      })
+      .then(cl0)
+      .done(done);
+    });
 
-  // log filter approach
-  it("send 2 transactions to a campaign and gets the corresponding topics using two filter approaches: watch, and get", function(done) {
+    // log filter approach
+    it("send 2 transactions to a campaign and gets the corresponding topics using two filter approaches: watch, and get", function(done) {
 
-    var filter;
-    var topic;
+      var filter;
+      var topic;
 
-    q()
+      q()
 
-    // capture logs through a filter watcher
-    .then((res)=>{
-      filter = web3.eth.filter();
+      // capture logs through a filter watcher
+      .then((res)=>{
+        filter = web3.eth.filter();
 
-      filter.watch(function (err, log) {
-        if (err) console.error(err);
-        assert.ok(err === null, 'Log watch filter reported an error');
+        filter.watch(function (err, log) {
+          if (err) console.error(err);
+          assert.ok(err === null, 'Log watch filter reported an error');
 
-        console.log("watch log:",log);
-        //  {"address":"0x0000000000000000000000000000000000000000", "data":"0x0000000000000000000000000000000000000000000000000000000000000000", ...}
-      });
-    })
+          console.log("watch log:",log);
+          //  {"address":"0x0000000000000000000000000000000000000000", "data":"0x0000000000000000000000000000000000000000000000000000000000000000", ...}
+        });
+      })
 
-    // initiate a transaction
-    .then((res)=>{
-      return sendTransaction(accs[0],icampaign.address,5,.1,campaignInstance.contributeMsgValue);
-    }).then(cl)
-    .then(getTransactionReceipt).then(cl)
+      // initiate a transaction
+      .then((res)=>{
+        return sendTransaction(accs[0],icampaign.address,5,.1,campaignInstance.contributeMsgValue);
+      }).then(cl)
+      .then(getTransactionReceipt).then(cl)
 
-    // ensure that the topic was logged in the transaction receipt
-    .then((res)=>{ topic = res.logs[0].topics[0] })
-    .then((res)=>{ assert.ok(topic !== undefined, 'Did not log contribution'); })
-    // .fail(cle)
+      // ensure that the topic was logged in the transaction receipt
+      .then((res)=>{ topic = res.logs[0].topics[0] })
+      .then((res)=>{ assert.ok(topic !== undefined, 'Did not log contribution'); })
+      // .fail(cle)
 
-    .then(()=>{
-      return sendTransaction(accounts[0],icampaign.address,.5,.1,campaignInstance.contributeMsgValue);
-    }).then(cl0)
-
-    .then(getAccounts).then(cl)
-    .then(function(res) {
-      var d = q.defer();
-      try {
-        var e = campaignInstance.contributionsBySender.call(
-          res[0],
-          1,
-          { "from": res[0] , "to": icampaign.address },
-          function(err,res) { console.log("res:"+res); d.resolve(res); });
-          return d.promise;
-        } catch(e) {
-          console.error(e);
-        }
-        return Q(1);
+      .then(()=>{
+        return sendTransaction(accounts[0],icampaign.address,.5,.1,campaignInstance.contributeMsgValue);
       }).then(cl0)
 
-      // check filter.get logs, and stop the filter
+      .then(getAccounts).then(cl)
       .then(function(res) {
-        // get all past logs again.
-        var myResults = filter.get({ "fromBlock": 0, "toBlock": "pending" },function(error, logs){ console.log("log collection:"); console.log(logs); });
-        console.log("myResults",myResults);
+        var d = q.defer();
+        try {
+          var e = campaignInstance.contributionsBySender.call(
+            res[0],
+            1,
+            { "from": res[0] , "to": icampaign.address },
+            function(err,res) { console.log("res:"+res); d.resolve(res); });
+            return d.promise;
+          } catch(e) {
+            console.error(e);
+          }
+          return Q(1);
+        }).then(cl0)
 
-        assert.ok(myResults.length > 0, "A log was not retrieved through filter.get");
+        // check filter.get logs, and stop the filter
+        .then(function(res) {
+          // get all past logs again.
+          var myResults = filter.get({ "fromBlock": 0, "toBlock": "pending" },function(error, logs){ console.log("log collection:"); console.log(logs); });
+          console.log("myResults",myResults);
 
-        // stops and uninstalls the filter
-        filter.stopWatching();
-      })
-      // TODO assert filter result content is correct
+          assert.ok(myResults.length > 0, "A log was not retrieved through filter.get");
 
-      .then(done);
+          // stops and uninstalls the filter
+          filter.stopWatching();
+        })
+        // TODO assert filter result content is correct
+
+        .then(done);
+      });
     });
-  });
