@@ -142,14 +142,14 @@ const getTransactionReceipt = function(hash) {
 // get balance of given account
 const getBalance = function(o) {
   const d = q.defer();
-  console.log("getting balance for:" + o);
+  // console.log("getting balance for:" + o);
   web3.eth.getBalance(o, 'latest', function(err,res) { if (err) console.error(err); d.resolve(res); } );
   return d.promise;
 };
 
 // get promised balances for list of balances
 const getBalances = function(list) {
-  console.log("getBalances:",list);
+  // console.log("getBalances:",list);
   return q.allSettled(list.map(function(o) {
     return getBalance(o);
   }));
@@ -424,11 +424,14 @@ describe('StandardCampaign tests', function() {
   // TODO in progress
   // TODO see why timeout is not succeeding
   // TODO see why payout to beneficiary is not succeeding
-  it.only("checks that a campaign can reach its funding goal and pay out", function(done) {
+  it("checks that a campaign can reach its funding goal and pay out", function(done) {
     this.timeout(20000);
 
     q()
-
+    .then(()=>{
+      console.log('campaignInstance:')
+      console.log(campaignInstance);
+    })
     .then(()=>{
       return q.nbind(campaignInstance.expiry, campaignInstance)();
     }).then(clm('expiry:'))
@@ -507,16 +510,62 @@ describe('StandardCampaign tests', function() {
     .fail(cle) // the assertion is not serious enough to stop
 
     // trigger the campaign stage to be updated, the only way to do that successfully right now is by being the owner and calling payout when successful
+
     // assert that a transaction receipt was issued
 
     // problems start here
 
+    // does not work
     .then(()=>{
-      var aa = campaignInstance.payoutToBeneficiary.apply(campaignInstance,[{ "from": accounts[0], "to":icampaign.address, "value":web3.toWei(1,'ether'), "gas":2000000 },cl]);
-      console.log('*********========================********');
-
+      var d = q.defer();
+      campaignInstance.payoutToBeneficiary({},"latest",(err,res)=>{
+        console.log('_try0');
+        console.log(err);
+        console.log(res);
+        d.resolve(res);
+      })
+      return d.promise;
     })
 
+    .then(()=>{
+      return q.nbind(campaignInstance.payoutToBeneficiary, campaignInstance)();
+    })
+    .then(clm('_try1:'))
+
+
+    .then(()=>{
+
+      var d = q.defer();
+
+      campaignInstance.payoutToBeneficiary.apply(campaignInstance,[{ "from": accounts[0], "to":icampaign.address, "value":web3.toWei(0.1,'ether'), "gas":2000000 },function(err,res) {
+        console.log("try2:");
+        console.log(err);
+        console.log(res);
+        d.resolve(res);
+      }]);
+      return d.promise;
+
+    })
+    .then(clm('_try2:'))
+
+    .then(()=>{
+      return getBalances(accounts);
+    })
+    .then(clm('balances11:'))
+
+    .then(()=>{
+      return sendTransaction(accounts[0], icampaign.address, 0.1, .1, icampaign.payoutToBeneficiary);
+    }).then(clm('_try4:'))
+
+    .then(()=>{
+      return getBalances(accounts);
+    })
+    .then(clm('balances12:'))
+
+    .done(()=>{done()});
+
+/*
+    q()
     .then(()=>{
       return getBalances(accounts);
     })
@@ -525,18 +574,20 @@ describe('StandardCampaign tests', function() {
     .then(()=>{
       return sendTransaction(accounts[0],icampaign.address,0,.1,campaignInstance.payoutToBeneficiary);
     })
-    .then(clm)
-
-    .then(()=>{
-      return getBalances(accounts);
-    })
-    .then(clm('balances2:'))
-
     .then(clm('payout sendtransaction tx hash:'))
     .then((res)=>{
       assert.ok(res, 'payoutToBeneficiary transaction did not issue transaction hash');
     })
     .fail(cle)
+
+    .then(()=>{
+      console.log("****************");
+      console.log(accounts);
+    })
+    .then(()=>{
+      return getBalances(accounts);
+    })
+    .then(clm('balances2:'))
 
     // make a call to the method
     // but this doesn't work
@@ -565,6 +616,7 @@ describe('StandardCampaign tests', function() {
     .done(()=>{
       done()
     });
+*/
 
   });
 
