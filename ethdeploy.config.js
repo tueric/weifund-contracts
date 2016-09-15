@@ -1,3 +1,5 @@
+'use strict';
+
 const Tx = require('ethereumjs-tx');
 const ethUtil = require('ethereumjs-util');
 
@@ -15,7 +17,7 @@ module.exports = {
     // get accounts
     web3.eth.getAccounts(function(accountsError, accountsResult){
       // handle errors
-      if (accountsError || accountsResult.length == 0) {
+      if (accountsError || accountsResult.length === 0) {
         throw `Accounts error or no accounts: ${accountsError}`;
       }
 
