@@ -10,7 +10,7 @@
     "build:deploy": "node ./deploy.js",
     "build:deploydebug": "node --debug-brk ./deploy.js",
     "build:browserify": "browserify --s WeiFundContracts index.js -o dist/weifund-contracts.js",
-    "build": "npm run build:contracts && npm run build:deploy && npm run build:browserify",
+    "build": "npm run build:contracts && npm run build:browserify && npm run build:deploy",
     "test:solidity": "dapple test",
     "test:js": "tape ./contracts/**/*.js",
     "test:mocha": "mocha ./contracts/__tests__/*.js",
@@ -18,7 +18,7 @@
     "test:other": "npm run test:solidity && npm run test:js",
     "inspector": "~/.npm-global/bin/node-inspector &",
     "nodedebug": "~/.npm-global/bin/node-debug",
-    "test:debug": "(npm run node:stop) && (npm run testrpc:start) && (sleep 3s) && (npm run inspector) && (npm run build) && (sleep 3s) && (npm run test:mocha:debug)",
+    "test:debug": "(npm run node:stop) && (npm run testrpc:start) && (sleep 3s) && (npm run inspector) && (npm run build:contracts) && (npm run build:browserify) && (npm run build:deploydebug) && (sleep 3s) && (npm run test:mocha:debug)",
     "test": "(npm run node:stop) && (npm run testrpc:start) && (sleep 3s)  && (npm run build) && (sleep 2s)  && (npm run test:mocha)",
     "test:jshint": "jshint ./*.js ./tests/*.js"
   },
