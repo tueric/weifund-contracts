@@ -299,8 +299,11 @@ describe('StandardCampaign tests', function() {
     // })
 
     .then(clm('version'))
-    .done((res)=>{
-      assert.ok(res == "1.0.0", 'Version not correct');
+    .then((res)=>{
+      assert.ok(res.includes('.'), 'Version not correct');
+    })
+    .fail(cle)
+    .done(()=>{
       done();
     });
   });
@@ -310,8 +313,11 @@ describe('StandardCampaign tests', function() {
     q(icampaign.address).then(getBalance)
     .then(bv) // transform bignumber into a value
     .then(clm('campaign balance:'))
-    .done((res)=>{
+    .then((res)=>{
       assert.ok(res==0, 'Campaign balance not zero');
+    })
+    .fail(cle)
+    .done(()=>{
       done();
     });
   });
@@ -322,10 +328,13 @@ describe('StandardCampaign tests', function() {
     .thenResolve(icampaign.address).then(getBalance)
     .then(bv)
     .then(clm('campaign balance:'))
-    .done((res)=>{
+    .then((res)=>{
       assert.ok(res>0, 'Campaign balance not greater than zero');
-      done();
     })
+    .fail(cle)
+    .done(()=>{
+      done();
+    });
   });
 
   it("sends a transaction to a campaign and receives a transaction receipt", function(done) {
@@ -344,18 +353,21 @@ describe('StandardCampaign tests', function() {
       assert.ok(res, 'Transaction hash not issued')
       return res;
     })
+    .fail(cle)
 
     .then(getTransactionReceipt)
     .then(clm('transaction receipt:'))
     .then((res)=>{
       assert.ok(res.logs !== undefined && res.logs.length > 0);
     })
+    .fail(cle)
 
     .then(()=>{ return q.nbind(campaignInstance.amountRaised, campaignInstance)() })
     .then(clm('Amount raised:'))
     .then((res)=>{
       assert.ok(res.greaterThan(ca), 'Campaign amountRaised did not increase due to contribution')
     })
+    .fail(cle)
 
     .done(()=>{
       done();
@@ -369,6 +381,7 @@ describe('StandardCampaign tests', function() {
 
     .then(getTransactionReceipt).then(clm('first transaction receipt:'))
     .then((res)=>{ assert.ok(res, 'First transaction receipt not issued')})
+    .fail(cle)
 
     .then(()=>{
       return sendTransaction(accounts[0],icampaign.address,.5,.1,campaignInstance.contributeMsgValue);
@@ -377,6 +390,7 @@ describe('StandardCampaign tests', function() {
       assert.ok(res, 'Second transaction hash not issued');
       return res;
     })
+    .fail(cle)
 
     .then(getTransactionReceipt).then(clm('second transaction receipt:'))
     .then((res)=>{ assert.ok(res, 'Second transaction receipt not issued')})
@@ -399,6 +413,7 @@ describe('StandardCampaign tests', function() {
       assert.ok(res.length > 0, 'At least two contribution ids not obtained from campaign for account');
       return res;
     })
+    .fail(cle)
 
     // get the contribution objects for the given contribution ids
     // TODO rewrite the call as async

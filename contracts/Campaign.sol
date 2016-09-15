@@ -1,4 +1,8 @@
 contract Campaign {
+  /// @notice the owner or campaign operator of the campaign
+  /// @return the Ethereum standard account address of the owner specified
+  function owner() constant returns(address) {}
+
   /// @notice the campaign interface version
   /// @return the version metadata
   function version() constant returns(string) {}
