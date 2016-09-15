@@ -1,3 +1,35 @@
+/*
+
+This test class examines the StandardCampaign contract using a web3 client. 
+
+A local TestRPC instance is expected.
+
+Contracts are compiled using dapple with solc < 0.3.6.
+
+Contracts are deployed to the environment using ethdeploy.
+
+The following test categories are included in this file:
+- environment
+- StandardCampaign
+
+The following tests are included for the environment:
+- accounts are present
+- accounts have a balance >= 0
+- an account can send a transaction to another account and obtain a tx hash and receipt
+
+The following test are included for the StandardCampaign:
+- verify that its meta data is accessible
+- verify that a contribution can be transacted to the campaign and that a tx hash and receipt is provided
+- verify that contribution ids and contribution receipts can be obtained by a user
+- verify that a campaign can achieve its funding goal
+- verify that a campaign state is correct if it expires and does not reach its funding goal
+- verify that a campaign can payout to its beneficiary if it succeeds
+
+TODO:
+- verify that a campaign can refund to its contributers if it is expired and did not reach its funding goal
+
+*/
+
 'use strict';
 
 const weifund = require('../../index.js');
@@ -236,7 +268,13 @@ before(()=> {
   .then(res=>{
     accounts = res;
     assert.ok(accounts.length > 0, 'No accounts detected');
-    return q(0);
+  })
+  .fail(cle)
+  .then(()=>{
+    console.log('StandardCampaign address: ',icampaign.address);
+  })
+  .then(()=>{
+    return q();
   });
 
 });
@@ -505,10 +543,13 @@ describe('StandardCampaign tests', function() {
     })
     .then(clm('evm_mine*:'))
 
+// helper function removed
+/*
     .then(()=>{
       return q.nbind(campaignInstance.getStageAt,campaignInstance)();
     }).then(clm('getstageat:'))
     .then((res)=>{ assert.ok(res.equals(2), 'Campaign stage is not set to not operational and goal reached'); })
+*/
 
     .then(()=>{
       return q.nbind(campaignInstance.getNow,campaignInstance)();
@@ -614,11 +655,13 @@ describe('StandardCampaign tests', function() {
     .then((res)=>{ assert.ok(res, 'payoutToBeneficiary call did not issue transaction hash'); })
     .fail(cle)
 
-    .then(()=>{
-      return q.nbind(campaignInstance.getStageAt,campaignInstance)();
-    }).then(clm('getStageAt:'))
-    .then((res)=>{ assert.ok(res.equals(2), 'Campaign stage is not set to not operational and goal reached'); })
-    .fail(cle)
+// helper function removed
+//    .then(()=>{
+//      return q.nbind(campaignInstance.getStageAt,campaignInstance)();
+//    }).then(clm('getStageAt:'))
+//    .then((res)=>{ assert.ok(res.equals(2), 'Campaign stage is not set to not operational and goal reached'); })
+//    .fail(cle)
+
 
     // assert that the stage is 2 (not operational, funding goal reached)
     .then(()=>{
@@ -683,10 +726,42 @@ describe('StandardCampaign tests', function() {
     .then((res)=>{
       assert.ok(res.greaterThanOrEqualTo(0), 'Campaign expiry not a proper num');
     })
+    .fail(cle)
     .done(()=>{
       done()
     });
   });
+
+  it("gets the beneficiary", function(done) {
+    q()
+    .then(()=>{
+      return q.nbind(campaignInstance.beneficiary, campaignInstance)();
+    })
+    .then(clm('beneficiary:'))
+    .then((beneficiaryAddress)=>{
+      assert.ok(beneficiaryAddress === accounts[0], 'Beneficiary address not set as expected');
+    })
+    .fail(cle)
+    .done(()=>{
+      done();
+    });
+  });
+
+  it("gets the owner", function(done) {
+    q()
+    .then(()=>{
+      return q.nbind(campaignInstance.owner, campaignInstance)();
+    })
+    .then(clm('owner:'))
+    .then((ownerAddress)=>{
+      assert.ok(ownerAddress === accounts[0], 'Owner address not set as expected');
+    })
+    .fail(cle)
+    .done(()=>{
+      done();
+    });
+  });
+
 
   it("gets the campaign name", function(done) {
     q()
@@ -694,6 +769,10 @@ describe('StandardCampaign tests', function() {
       return q.nbind(campaignInstance.name, campaignInstance)();
     })
     .then(clm('campaign name:'))
+    .then((campaignName)=>{
+      assert.ok(campaignName.length > 0, 'Campaign name has length zero');
+    })
+    .fail(cle)
     .done(()=>{
       done()
     });
@@ -704,13 +783,18 @@ describe('StandardCampaign tests', function() {
     .then(()=>{
       return q.nbind(campaignInstance.fundingGoal, campaignInstance)();
     })
-    .then(cl0)
+    .then(clm('funding goal:'))
+    .then((fundingGoal)=>{
+      assert.ok(fundingGoal.greaterThanOrEqualTo(0), 'Campaign funding goal not valid');
+    })
+    .fail(cle)
     .done(()=>{
       done()
     });
   });
 
   // asserts not added since campaign class needs additional methods to support actual stage
+  // TODO determine a better way to determing the campaign stage since its trigger requires a transaction
   it("gets the campaign stage (operation/ended)", function(done) {
 
     q()
