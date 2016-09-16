@@ -69,13 +69,18 @@ contract TestableStandardCampaign is StandardCampaign {
 
 contract TestableStandardCampaignTest is Test {
   TestableStandardCampaign target;
+  User user ;
   string campaignName = "TestableStandardCampaign test - modifiable Standard Campaign";
   string standardCampaignContributeMethodABI = "contributeMsgValue():(uint256 contributionID)";
   string standardCampaignPayoutMethodABI = "payoutToBeneficiary():(uint256 amountClaimed)";
 
+  // there are 3 main cases dependent on expiry and funding goal
+  // 1 - campaign still active - test contribution
+  // 2 - campaign expired, goal reached - test payoutToBeneficiary, dependent on case 1
+  // 3 - campaign expired, goal not reached - test claimRefundOwed, dependent on case 1
   function test_testableStandardCampaignDeploymentAndUse() {
     // build new user
-    User user = new User();
+    user = new User();
     user.send(1000);
 
     // setup campaign data
@@ -85,29 +90,114 @@ contract TestableStandardCampaignTest is Test {
 
     // start new campaign
     target = TestableStandardCampaign(user.newTestableCampaign(campaignName, expiry, fundingGoal, beneficiary));
+
+    // test modifiable test class - expiry date
     assertEq(target.expiry(), expiry);
     target.setExpiry(0);
     assertEq(target.expiry(), 0);
     target.setExpiry(expiry);
     assertEq(target.expiry(), expiry);
 
+    // test modifiable test class - funding goal
     assertEq(target.fundingGoal(), fundingGoal);
     target.setFundingGoal(0);
     assertEq(target.fundingGoal(), 0);
     target.setFundingGoal(fundingGoal);
     assertEq(target.fundingGoal(), fundingGoal);
+  }
 
-    // new contribution
+  function test_testableStandardCase1() {
+
+    // prepare a testable campaign
+    test_testableStandardCampaignDeploymentAndUse();
+
+    // Case 1 - new contribution
     assertEq(user.newContribution(address(target), 250), uint256(0));
     assertEq(uint256(target.balance), uint256(250));
     assertEq(uint256(user.balance), uint256(750));
 
-    // expect varience from..
+    // expect change in campaign amountraised and total contributions
     assertEq(target.amountRaised(), uint256(250));
     assertEq(target.totalContributions(), uint256(1));
-    
-    
   }
+
+  // test case 2 - that a payout can occur if the campaign expires and reaches its funding goal
+  function test_testableStandardCase2() {
+
+    // prepare a testable campaign with a single contribution
+    test_testableStandardCase1();
+
+    // Case 2
+    target.setExpiry(1);
+    target.setFundingGoal(1);
+    uint256 originalBeneficiaryBalance = target.beneficiary().balance;
+    assertTrue(originalBeneficiaryBalance > 0);
+    uint256 payout = target.payoutToBeneficiary();
+    assertTrue(payout > 0);
+    assertEq(payout, target.amountRaised());
+    assertEq(target.balance, 0);
+    assertEq(originalBeneficiaryBalance + target.amountRaised(), target.beneficiary().balance);        
+
+  }
+
+  // test case 3 - that a refund can occur if the campaign expires and does not reach its funding goal
+  function test_testableStandardCase3() {
+
+    // prepare a testable campaign with a single contribution
+    test_testableStandardCase1();
+
+    // Case 2
+    target.setExpiry(1);
+    target.setFundingGoal(1000000000);
+    uint256 campaignOriginalBalance = target.balance;
+    assertTrue(campaignOriginalBalance > 0);
+    BalanceClaim balanceClaim = BalanceClaim(target.claimRefundOwed(0)); // we know that it is contribution id 0 because at this point there is exactly one contribution
+    assertEq(balanceClaim.balance, campaignOriginalBalance);
+    assertEq(target.balance, 0);
+
+    // from here we can test balance claim
+    // already tested in test.BalanceClaim.sol
+  }
+
+  // test - that no contribution is permitted if past expiry
+  function test_testableContributionCaseExpectFailure() {
+
+    // prepare a testable campaign
+    test_testableStandardCampaignDeploymentAndUse();
+
+    // expire the campaign with a funding goal that can be reached
+    target.setExpiry(0);
+    target.setFundingGoal(1);
+
+    // attempt a contribution to the expired campaign, the following line fails
+    user.newContribution(address(target), 250);
+
+    // following should not be reached
+    assertEq(target.balance, 0);
+
+  }
+
+
+  // test - that a payout is possible to execute even if no contribution was ever made
+  function test_testablePayoutCaseShouldBeFailure() {
+    // prepare a testable campaign
+    test_testableStandardCampaignDeploymentAndUse();
+
+    // ensure that the campaign has no money
+    assertEq(target.amountRaised(), 0);
+    assertEq(target.balance, 0);
+
+    // expire the campaign
+    target.setExpiry(1);
+    // set the funding goal to zero
+    target.setFundingGoal(0);
+
+    // the following fails - is it due to the attempt to send 0 ether?
+    // there should probably be a check in the campaign to payout if amountRaised is greater than zero
+    uint256 payout = target.payoutToBeneficiary();
+    assertEq(payout, 0);
+  }
+
 }
 
 contract StandardCampaignTest is Test {
