@@ -54,6 +54,21 @@ contract TestableStandardCampaign is StandardCampaign {
     {
   }
 
+  modifier validRefundClaim(uint256 _contributionID) {
+    // get the contribution specified by ID "_contributionID"
+    Contribution refundContribution = contributions[_contributionID];
+
+    // if the refund for this contribution has not been claimed
+    if(refundsClaimed[_contributionID] == true) { // the refund for this contribution is not claimed
+//      || refundContribution.sender != msg.sender){ // the contribution sender is the msg.sender
+      throw;
+    }
+
+    // carry on with refund state changing contract logic
+    _
+  }
+
+
   function setExpiry(uint _expiry) {
     expiry = _expiry;
   }

@@ -44,9 +44,8 @@ contract StandardCampaign is Campaign {
     Contribution refundContribution = contributions[_contributionID];
 
     // if the refund for this contribution has not been claimed
-    if(refundsClaimed[_contributionID] == true) { // the refund for this contribution is not claimed
-// disabled so that refund can be claimed by whomever (just like how whomever can initiate a beneficiary claim)
-//      || refundContribution.sender != msg.sender){ // the contribution sender is the msg.sender
+    if(refundsClaimed[_contributionID] == true // the refund for this contribution is not claimed
+      || refundContribution.sender != msg.sender){ // the contribution sender is the msg.sender
       throw;
     }
 
