@@ -150,9 +150,9 @@ const sendTransaction = function(from, to, amount, gas, i) {
   var ii = i || web3.eth;
   ii.sendTransaction({
     'from': from,
-    'to':to,
-    'value':web3.toWei(amount,'ether'),
-    'gas':2000000,
+    'to': to,
+    'value': web3.toWei(amount,'ether'),
+    'gas': 2000000,
     // 'gasPrice': 10,
     // 'gas':web3.eth.gasPrice*100000 //web3.toWei(gas,'ether')
     // 'data': web3.fromAscii('hello')
@@ -604,7 +604,7 @@ describe('StandardCampaign tests', function() {
 
       var d = q.defer();
 
-      campaignInstance.payoutToBeneficiary.apply(campaignInstance,[{ 'from': accounts[0], 'to':icampaign.address, 'value':web3.toWei(0.1,'ether'), 'gas':2000000 },function(err,res) {
+      campaignInstance.payoutToBeneficiary.apply(campaignInstance,[{ 'from': accounts[0], 'to': icampaign.address, 'value': web3.toWei(0.1,'ether'), 'gas': 2000000 },function(err,res) {
         console.log('try2:');
         console.log(err);
         console.log(res);
@@ -825,11 +825,11 @@ describe('StandardCampaign tests', function() {
       console.log('*****************');
       var d1 = q.defer();
       var dat = {
-        'from':accounts[0],
-        'to':icampaign.address,
+        'from': accounts[0],
+        'to': icampaign.address,
         'gasPrice': '0x01',
         // TODO Update the following reference, the object is underfined
-        'data':weifund.classes.StandardCampaign.functionHashes['version()']
+        'data': weifund.classes.StandardCampaign.functionHashes['version()']
       };
       console.log('dat:',dat);
       web3.eth.call(dat,

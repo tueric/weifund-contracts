@@ -22,25 +22,6 @@ contract User {
   }
 }
 
-// A contract that can be used to extend an existing class with a given timestamp
-contract TestableTimeElement {
-  // timestamp that will hold an abstract timestamp
-  uint public debug_timestamp;
-
-  // retrieve the testing timestamp, this can be overwridden further by the testable class
-  function getTime() public constant returns (uint) {
-    return debug_timestamp;
-  }
-  // set the testing timestamp
- function setTime(uint timestamp) {
-    debug_timestamp = timestamp;
-  }
-  // add an amount of time to the testing timestamp
-  function addTime(uint time) {
-    setTime(getTime() + time);
-  }
-}
-
 contract TestableStandardCampaign is StandardCampaign {
   function TestableStandardCampaign(string _name,
     uint256 _expiry,
@@ -60,6 +41,8 @@ contract TestableStandardCampaign is StandardCampaign {
 
     // if the refund for this contribution has not been claimed
     if(refundsClaimed[_contributionID] == true) { // the refund for this contribution is not claimed
+// disabled the following condition (which exists in the original StandardCampaign contract in order
+// to be able to test the method with different accounts
 //      || refundContribution.sender != msg.sender){ // the contribution sender is the msg.sender
       throw;
     }
@@ -103,9 +86,9 @@ contract TestableStandardCampaignTest is Test {
     uint256 fundingGoal = 1000;
     address beneficiary = address(user);
 
+
     // start new campaign
     target = TestableStandardCampaign(user.newTestableCampaign(campaignName, expiry, fundingGoal, beneficiary));
-
     // test modifiable test class - expiry date
     assertEq(target.expiry(), expiry);
     target.setExpiry(0);
@@ -211,6 +194,9 @@ contract TestableStandardCampaignTest is Test {
     // there should probably be a check in the campaign to payout if amountRaised is greater than zero
     uint256 payout = target.payoutToBeneficiary();
     assertEq(payout, 0);
+
+    logs("This test should fail");
+
   }
 
 }
