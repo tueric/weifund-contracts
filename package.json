@@ -4,13 +4,24 @@
   "description": "The WeiFund core contracts",
   "main": "index.js",
   "scripts": {
+    "testrpc:start": "./node_modules/ethereumjs-testrpc/bin/testrpc --account='0x7dd98753d7b4394095de7d176c58128e2ed6ee600abe97c9f6d9fd65015d9b18,10000000000000000000000000000000' --account='0x8ac9f85a70e25978ff18b84db4d8ec5fb8d2a9acb08e9c49b59256c834fbacd3,10000000000000000000000' &",
+    "node:stop": "killall -9 -q node; exit 0",
     "build:contracts": "dapple build",
     "build:deploy": "node ./deploy.js",
+    "build:deploydebug": "node --debug-brk ./deploy.js",
     "build:browserify": "browserify --s WeiFundContracts index.js -o dist/weifund-contracts.js",
-    "build": "npm run build:contracts && npm run build:deploy && npm run build:browserify",
+    "build": "npm run build:contracts && npm run build:browserify && npm run build:deploy",
     "test:solidity": "dapple test",
     "test:js": "tape ./contracts/**/*.js",
-    "test": "npm run test:solidity && npm run test:js"
+    "test:mocha": "mocha ./contracts/__tests__/*.js",
+    "test:mocha:debug": "mocha --debug-brk ./contracts/__tests__/*.js",
+    "test:other": "npm run test:solidity && npm run test:js",
+    "inspector": "~/.npm-global/bin/node-inspector &",
+    "nodedebug": "~/.npm-global/bin/node-debug",
+    "test:debug": "(npm run node:stop) && (npm run testrpc:start) && (sleep 3s) && (npm run inspector) && (npm run build:contracts) && (npm run build:browserify) && (npm run build:deploydebug) && (sleep 3s) && (npm run test:mocha:debug)",
+    "test": "(npm run node:stop) && (npm run testrpc:start) && (sleep 3s)  && (npm run build) && (sleep 2s)  && (npm run test:mocha)",
+    "jshint": "jshint ./*.js",
+    "jshint:recursive": "find . -type f \\( -name '*.json' -o -name '*.js' \\) -a ! -path './node_modules/*' ! -path './dist/*' ! -path './lib/*' -exec jshint {} \\;"
   },
   "repository": {
     "type": "git",
@@ -27,8 +38,13 @@
     "url": "https://github.com/WeiFund/weifund-contracts/issues"
   },
   "homepage": "https://github.com/WeiFund/weifund-contracts#readme",
+  "dependencies": {
+    "bignumber.js": "^2.4.0",
+    "jsonpath": "^0.2.6"
+  },
   "devDependencies": {
     "browserify": "^13.0.1",
+    "chaithereum": "^1.4.0",
     "ethdeploy": "^0.1.2",
     "ethdeploy-cli": "0.0.5",
     "ethdeploy-provider-http": "^0.1.0",
@@ -36,6 +52,8 @@
     "ethereumjs-testrpc": "^2.0.8",
     "ethereumjs-tx": "^1.1.2",
     "ethereumjs-util": "^4.5.0",
+    "jshint": "^2.9.3",
+    "mocha": "^3.0.2",
     "tape": "^4.6.0"
   }
 }

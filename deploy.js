@@ -1,3 +1,5 @@
+'use strict';
+
 const config = require('./ethdeploy.config');
 const deployer = require('ethdeploy');
 const buildFileLocation = './lib/environments.json';
@@ -6,7 +8,8 @@ const fs = require('fs');
 // run deployer
 deployer(config, function(deployerError, deployerResult) {
   if (deployerError) {
-    log(`Error during contract deployment!`);
+    console.log(`Error during contract deployment!`);
+    console.error(deployerError);
   } else {
     // build string build object
     const stringBuildObject = JSON.stringify(deployerResult, null, 2);

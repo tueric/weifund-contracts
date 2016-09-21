@@ -1,30 +1,32 @@
 import "dapple/test.sol";
 import "PrivateServiceRegistry.sol";
 
-contract User {
+contract TestablePrivateServiceRegistry is PrivateServiceRegistry {
+  function testableRegister(address _service) isNotRegisteredService(_service) returns (uint serviceId) {
+    return super.register(_service);
+  }
+
+
 }
 
-contract PublicServiceRegistry is PrivateServiceRegistry {
-  function registerService(address _service) public {
-    register(_service);
-  }
-}
 
-contract BalanceClaimTest is Test {
-  PublicServiceRegistry target;
-  User user;
+contract TestPrivateServiceRegistry is Test {
+  TestablePrivateServiceRegistry ps;
 
-  function setupUser() returns (address) {
-    user = new User();
-    return address(user);
+  function test_generatedIds() {
+    ps = new TestablePrivateServiceRegistry();
+    assertTrue(ps.testableRegister(0x01) == 0);
+    assertTrue(ps.testableRegister(0x02) == 1);
   }
 
-  function resetTarget() {
-    target = new PublicServiceRegistry();
+  function test_registerAgain() {
+    test_generatedIds();
+    assertFalse(ps.testableRegister(0x01) == 3);
   }
 
-  function test_register() {
-    setupUser();
-    resetTarget();
+  function test_registerAgainShouldFail() {
+    test_registerAgain();
+    assertTrue(ps.testableRegister(0x02) == 0);
+    logs("The returned serviceid of registering an existing service with id 1 should not be 0");
   }
 }
