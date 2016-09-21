@@ -1,5 +1,3 @@
-'use strict';
-
 const Tx = require('ethereumjs-tx');
 const ethUtil = require('ethereumjs-util');
 
@@ -7,23 +5,23 @@ const ethUtil = require('ethereumjs-util');
 // {"address": "0x000", "privateKey": "00000"}
 
 module.exports = {
-  environment: 'testrpc',
+  environment: 'all',
   deploymentModule: function(deploy, contracts, web3){
-    // deploy registriesMyContract.at([address]);MyContract.at([address]);
-
-    // deploy(contracts.CampaignDataRegistry);
-    // deploy(contracts.CampaignRegistry);
+    // deploy registries
+    deploy(contracts.CampaignDataRegistry);
+    deploy(contracts.CampaignRegistry);
 
     // get accounts
     web3.eth.getAccounts(function(accountsError, accountsResult){
       // handle errors
-      if (accountsError || accountsResult.length === 0) {
+      if (accountsError || accountsResult.length == 0) {
         throw `Accounts error or no accounts: ${accountsError}`;
       }
 
       // deploy two campaigns for reference
-//      deploy(contracts.CoffeeRunCampaign, 'Coffee Run Campaign', Math.floor(Date.now() / 1000) + 30000, 5000, accountsResult[0]);
-      deploy(contracts.IceCreamRunCampaign, 'Ice Cream Run Campaign', Math.floor(Date.now() / 1000) + 22000, 2300, accountsResult[0], accountsResult[0]);
+      deploy(contracts.CoffeeRunCampaign, 'Coffee Run Campaign', Math.floor(Date.now() / 1000) + 30000, 5000, accountsResult[0]);
+
+      deploy(contracts.IceCreamRunCampign, 'Ice Cream Run Campaign', Math.floor(Date.now() / 1000) + 22000, 2300, accountsResult[0]);
     });
   },
   deploymentConfig: {
@@ -49,16 +47,14 @@ module.exports = {
             'from': 0, // a custom account
             'gas': 3135000, // some custom gas
           },
-          'IceCreamRunCampaign': {
+          'IceCreamRunCampign': {
             'class': 'StandardCampaign',
             'from': 0, // a custom account
             'gas': 3135000, // some custom gas
-            'expiry':100,
-            'name' : 'Icecreamrun',
           },
         },
       },
-      'morden1': {
+      'morden': {
         'provider': {
           'type': 'zero-client',
           getAccounts: function(cb) {
