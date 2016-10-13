@@ -23,7 +23,7 @@ contract CampaignDataRegistry is CampaignDataRegistryInterface {
     }
 
     // otherwise, carry on with normal state changing logic
-    _
+    _;
   }
 
   /// @notice inavalidate fallback method support
