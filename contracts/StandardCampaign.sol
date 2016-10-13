@@ -36,7 +36,7 @@ contract StandardCampaign is Campaign {
     }
 
     // otherwise, carry on with contractual state changing contract logic
-    _
+    _;
   }
 
   modifier validRefundClaim(uint256 _contributionID) {
@@ -50,7 +50,7 @@ contract StandardCampaign is Campaign {
     }
 
     // carry on with refund state changing contract logic
-    _
+    _;
   }
 
   /// @notice a fallback function that supports contribution
@@ -62,7 +62,7 @@ contract StandardCampaign is Campaign {
 
   /// @notice send a contribution of a specific value to this campaign
   /// @return The contribution ID as a uint256
-  function contributeMsgValue() atStageOr(uint(Stages.CrowdfundOperational)) public returns (uint256 contributionID) {
+  function contributeMsgValue() atStageOr(uint(Stages.CrowdfundOperational)) public payable returns (uint256 contributionID) {
     // create the contribtionID that will be returned by increasing the contributions array length by 1
     // allow the intake of contributions with a msg.value of zero for method simplicity
     contributionID = contributions.length++;
