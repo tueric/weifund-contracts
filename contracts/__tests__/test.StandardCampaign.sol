@@ -48,7 +48,7 @@ contract TestableStandardCampaign is StandardCampaign {
     }
 
     // carry on with refund state changing contract logic
-    _
+    _;
   }
 
 

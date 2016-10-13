@@ -42,21 +42,21 @@ contract CampaignRegistryTest is Test {
     User user = User(setupUser());
 
     address campaign = address(user.deployCampaign());
-    address interface = address(user.deployInterface());
+    address _interface = address(user.deployInterface());
 
 
     // test base registry details
     assertTrue(address(campaign) != 0x0);
     return;
     assertTrue(Owner(campaign).owner() == address(user));
-    assertTrue(bool(interface != address(0)));
+    assertTrue(bool(_interface != address(0)));
     assertEq(uint256(target.numCampaigns()), uint256(0));
 
     // test first registration
-    assertEq(uint256(user.registerCampaign(address(target), campaign, interface)), uint256(0));
+    assertEq(uint256(user.registerCampaign(address(target), campaign, _interface)), uint256(0));
     assertEq(uint256(target.numCampaigns()), uint256(1));
     assertEq(target.addressOf(0), campaign);
-    assertEq(target.interfaceOf(0), interface);
+    assertEq(target.interfaceOf(0), _interface);
     assertEq(target.idOf(campaign), uint256(0));
     assertTrue(bool(target.registeredAt(0) > uint256(0)));
 
@@ -94,10 +94,10 @@ contract CampaignRegistryTest is Test {
     User user = User(setupUser());
 
     address campaign = address(user.deployCampaign());
-    address interface = address(user.deployInterface());
+    address _interface = address(user.deployInterface());
 
     // test first registration
-    assertEq(uint256(user.registerCampaign(address(target), campaign, interface)), uint256(0));
-    assertEq(uint256(user.registerCampaign(address(target), campaign, interface)), uint256(0));
+    assertEq(uint256(user.registerCampaign(address(target), campaign, _interface)), uint256(0));
+    assertEq(uint256(user.registerCampaign(address(target), campaign, _interface)), uint256(0));
   }
 }
