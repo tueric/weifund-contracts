@@ -2,20 +2,31 @@
 
 const Tx = require('ethereumjs-tx');
 const ethUtil = require('ethereumjs-util');
+const contracts = require('./lib/classes.json');
+const util = require('util');
 
 // make sure you create a JSON file for your account and private key
 // {"address": "0x000", "privateKey": "00000"}
 
 module.exports = {
-  environment: 'testrpc',
-  deploymentModule: function(deploy, contracts, web3){
+  output: {
+    environment: 'testrpc',
+  },
+  entry: {
+    testrpc: contracts,
+  },
+//  environment: 'testrpc',
+  module: function(deploy, contracts, web3){
+//console.log('deploy:'+deploy);
+//console.log('contracts:'+contracts);
+//console.log('web3:'+util.inspect(web3, {depth:null}));
     // deploy registriesMyContract.at([address]);MyContract.at([address]);
 
     // deploy(contracts.CampaignDataRegistry);
     // deploy(contracts.CampaignRegistry);
 
     // get accounts
-    web3.eth.getAccounts(function(accountsError, accountsResult){
+    web3.web3.eth.getAccounts(function(accountsError, accountsResult){
       // handle errors
       if (accountsError || accountsResult.length === 0) {
         throw `Accounts error or no accounts: ${accountsError}`;
@@ -23,10 +34,10 @@ module.exports = {
 
       // deploy two campaigns for reference
 //      deploy(contracts.CoffeeRunCampaign, 'Coffee Run Campaign', Math.floor(Date.now() / 1000) + 30000, 5000, accountsResult[0]);
-      deploy(contracts.IceCreamRunCampaign, 'Ice Cream Run Campaign', Math.floor(Date.now() / 1000) + 22000, 2300, accountsResult[0], accountsResult[0]);
+      deploy(contracts.StandardCampaign, 'Ice Cream Run Campaign', Math.floor(Date.now() / 1000) + 22000, 2300, accountsResult[0], accountsResult[0]);
     });
   },
-  deploymentConfig: {
+  config: {
     'defaultBuildProperties': [
       'from',
       'transactionHash',
