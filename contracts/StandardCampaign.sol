@@ -9,24 +9,27 @@ contract StandardCampaign is Campaign {
   }
 
   modifier atStageOr(uint256 _expectedStage) {
-    // this is the WeiFund StandardCampaign state machine
-    // if the current block timestamp is less than the specified exipry timestamp
-    // the campaign is at stage 0, operational state
-    if (now < expiry) {
-      stage = uint256(Stages.CrowdfundOperational);
+    // if stage needs to be changed
+    if (stage != _expectedStage) {
+      // this is the WeiFund StandardCampaign state machine
+      // if the current block timestamp is less than the specified exipry timestamp
+      // the campaign is at stage 0, operational state
+      if (now < expiry) {
+        stage = uint256(Stages.CrowdfundOperational);
 
-    // if the current blocktimestamp is greater than the specified expiry
-    // the amount raised is less than the funding goal
-    // and funding goal was specified as a value greater than zero
-    // the campaign is at stage 1 failure state
-    } else if(now >= expiry && amountRaised < fundingGoal && fundingGoal > 0) {
-      stage = uint256(Stages.CrowdfundFailure);
+      // if the current blocktimestamp is greater than the specified expiry
+      // the amount raised is less than the funding goal
+      // and funding goal was specified as a value greater than zero
+      // the campaign is at stage 1 failure state
+      } else if(now >= expiry && amountRaised < fundingGoal && fundingGoal > 0) {
+        stage = uint256(Stages.CrowdfundFailure);
 
-    // if the current blocktimestamp is greater than or equal to the specified expiry
-    // timestamp the amount raised is greater than or equal to the funding goal
-    // then the crowdfund is at stage 2 success state
-    } else if(now >= expiry && amountRaised >= fundingGoal) {
-      stage = uint256(Stages.CrowdfundSuccess);
+      // if the current blocktimestamp is greater than or equal to the specified expiry
+      // timestamp the amount raised is greater than or equal to the funding goal
+      // then the crowdfund is at stage 2 success state
+      } else if(now >= expiry && amountRaised >= fundingGoal) {
+        stage = uint256(Stages.CrowdfundSuccess);
+      }
     }
 
     // if the current stage does not equal the expected stage
@@ -53,9 +56,20 @@ contract StandardCampaign is Campaign {
     _
   }
 
+  /// @notice check contract invarience, if something is wrong, send beneficiary all funds
+  function checkInvarience() internal {
+    // the amountRaised value should always equal the contract balance while the
+    // crowdfund is in operation, panic and send beneficiary funds in any other case
+    if (amountRaised != this.balance && stage == uint256(Stages.CrowdfundOperational)) {
+      if (!beneficiary.send(this.balance)) {
+        throw;
+      }
+    }
+  }
+
   /// @notice a fallback function that supports contribution
-  function () {
-    // allow the fallback funciton to intake contribtions
+  function () public {
+    // allow the fallback function to intake contribtions
     // we are aware this is not currently a contractual best practice
     contributeMsgValue();
   }
@@ -83,6 +97,9 @@ contract StandardCampaign is Campaign {
 
     // fire the contribution made event
     ContributionMade(msg.sender);
+
+    // check invarience
+    checkInvarience();
   }
 
   /// @notice payout the balance of the campaign to the campaign beneficiary
@@ -99,6 +116,9 @@ contract StandardCampaign is Campaign {
 
     // fire the beneficiary payout claimed event
     BeneficiaryPayoutClaimed(beneficiary, amountClaimed);
+
+    // check invarience
+    checkInvarience();
   }
 
   /// @notice claim refund owed for contribution at id '_contributionID' returns 'balanceClaim' address
@@ -121,6 +141,9 @@ contract StandardCampaign is Campaign {
     } else {
       throw;
     }
+
+    // check invarience
+    checkInvarience();
   }
 
   /// @notice the StandardCampaign constructor
@@ -133,7 +156,7 @@ contract StandardCampaign is Campaign {
     uint256 _expiry,
     uint256 _fundingGoal,
     address _beneficiary,
-    address _owner) {
+    address _owner) public {
     // set the name, expiry, funding goal, beneficiary address and owner
     // of the campaign
     name = _name;
