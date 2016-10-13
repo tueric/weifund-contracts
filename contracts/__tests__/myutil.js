@@ -126,10 +126,11 @@ const setup = function(_web3, _q) {
   q = _q;
 };
 
-module.export = {
+module.exports = {
   setup: setup,
   web3: web3,
   q: q,
+  contract: contract,
   getAccounts: getAccounts,
   getBalances: getBalances,
   getBalance: getBalance,
