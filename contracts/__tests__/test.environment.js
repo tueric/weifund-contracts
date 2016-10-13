@@ -14,9 +14,10 @@ The following are tested:
 
 const weifund = require('../../index.js');
 const assert = require('assert');
+//const util = require('util');
 
 const q = require('q');
-//const util = require('util');
+
 var Web3 = require('web3');
 var provider = new Web3.providers.HttpProvider('http://localhost:8545');
 var web3 = new Web3(provider);
@@ -24,25 +25,23 @@ var web3 = new Web3(provider);
 const util = require('./myutil.js');
 util.setup(web3, q);
 
-const chaithereum = require('chaithereum');
-
 var accounts = [];
-//var balances = [];
 
-before(()=> {
-  // another way to deploy instead of through npm
-  // makes visible the deployment into the environment right in the unit test itself
-  // ** does not yet work, not tested **
-  // TODO need to make sure that environment file is generated before its import into this file
-  //const deploy = require('../deploy.js');
+before('Environment setup', ()=> {
+  console.log('Environment test setup');
 
-  return chaithereum.promise
+  // start a promise chain
+  return q()
+  // get accounts
   .then(util.getAccounts)
+  // then log the accounts to the console
   .then(util.logAfterResolve('accounts:'))
-  .then((_accounts)=>{
+  // then assign the accounts to a global, asserting a non-empty set is present
+  .then(_accounts=>{
     accounts = _accounts;
     assert.ok(accounts.length > 0, 'No accounts detected');
   })
+  // continue even if the assertion failed
   .fail(util.logErrorThen)
   .then(()=>{
     return q();
@@ -50,13 +49,14 @@ before(()=> {
 
 });
 
+
 describe('Environment tests', function() {
   it('Send a transaction from accounts[0] to accounts[1]', function(done) {
     var account_0, account_1;
 
     q()
     .then(()=>{ return util.getBalances(accounts); }).then(util.logAfterResolve('balances before transaction:'))
-    .then((res)=>{ a0 = res[0]; a1 = res[1]; })
+    .then((res)=>{ account_0 = res[0]; account_1 = res[1]; })
 
     .then(()=>{ return util.sendTransaction(accounts[0],accounts[1],1,1); }).then(util.logAfterResolve('transaction hash:'))
     .then((txHash)=>{ assert.ok(txHash, 'Transaction hash not generated'); return txHash; })
@@ -64,13 +64,13 @@ describe('Environment tests', function() {
     .then(util.getTransactionReceipt).then(util.logAfterResolve('transaction receipt:'))
     .then((rxHash)=>{ assert.ok(rxHash, 'Receipt not generated'); })
 
-    .then(()=>{ return getBalances(accounts); }).then(util.logAfterResolve('balances after transaction:'))
+    .then(()=>{ return util.getBalances(accounts); }).then(util.logAfterResolve('balances after transaction:'))
     .done((balanceList)=>{
       for (var i = 0; i < balanceList.length; i++) {
-        assert(convertBigNumberToBase10(res[i].value) >= 0, 'Balance not correct for account '+balanceList[i]);
+        assert(util.convertBigNumberToBase10(balanceList[i].value) >= 0, 'Balance not correct for account '+balanceList[i]);
       }
-      assert(balanceList[0].value.lessThan(a0.value), 'Balance did not decrease for account[0]');
-      assert(balanceList[1].value.greaterThan(a1.value), 'Balance did not increase for account[1]');
+      assert(balanceList[0].value.lessThan(account_0.value), 'Balance did not decrease for account[0]');
+      assert(balanceList[1].value.greaterThan(account_1.value), 'Balance did not increase for account[1]');
       done();
     });
   });
