@@ -1,4 +1,6 @@
 const classes_module = require('./lib/classes.json');
+const environments_module = require('./lib/environments.json');
+/*
 const environments_module = {
   testnet: {
     StaffPicks: {
@@ -18,6 +20,7 @@ const environments_module = {
     },
   },
 };
+*/
 
 function contractFactoryFunction(abi) {
   return function (web3) {

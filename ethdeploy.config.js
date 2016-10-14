@@ -30,6 +30,7 @@ module.exports = {
         throw `Accounts error or no accounts: ${accountsError}`;
       }
 
+console.log('deploy:'+deploy);
       // deploy two campaigns for reference
 //      deploy(contracts.CoffeeRunCampaign, 'Coffee Run Campaign', Math.floor(Date.now() / 1000) + 30000, 5000, accountsResult[0]);
       deploy(contracts.StandardCampaign, 'Ice Cream Run Campaign', Math.floor(Date.now() / 1000) + 22000, 2300, accountsResult[0], accountsResult[0]);
@@ -58,7 +59,7 @@ module.exports = {
             'from': 0, // a custom account
             'gas': 3135000, // some custom gas
           },
-          'IceCreamRunCampign': {
+          'StandardCampaign': {
             'class': 'StandardCampaign',
             'from': 0, // a custom account
             'gas': 3135000, // some custom gas
