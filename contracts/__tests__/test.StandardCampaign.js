@@ -192,14 +192,10 @@ before('StandardCampaign setup', ()=> {
 
 });
 
-console.log("WEIFUND INTERFACE");
-console.log(weifund.classes.StandardCampaign.interface);
-
 beforeEach(() => {
   var c = myutil.contract(weifund.classes.StandardCampaign.interface);
   campaignInstance = c.at(icampaign.address);
 });
-
 
 describe('StandardCampaign tests', function() {
 
@@ -567,34 +563,6 @@ describe('StandardCampaign tests', function() {
 
   });
 
-  // TODO in progress
-  it('checks the status of the campaign after a time delay that expires the campaign. This test should fail since the second contribution should not be permitted when the campaign is expired.', function(done) {
-    //this.timeout(40000);
-
-    q()
-    // make an initial contribution
-    .then(()=>{
-      return myutil.sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
-    }).then(myutil.logThen)
-
-    .then(myutil.getTransactionReceipt).then(myutil.logThen)
-
-    // expire the campaign
-    .then(()=>{ increaseTime(2000000); })
-
-    // send a second contribution after the campaign has expired
-    .then(()=>{
-      return myutil.sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
-    }).then(myutil.logThen)
-
-    // assert that the contribution did not succeed
-    .then(function(res) { assert.ok(res === undefined, 'Send contribution to campaign is possible even though contract has expired'); })
-    .fail(myutil.logErrorThen)
-
-    .then(done);
-
-  });
-
   it('gets the campaign expiry', function(done) {
     q.nbind(campaignInstance.expiry, campaignInstance)()
     .then(myutil.logAfterResolve('campaign expiry:'))
@@ -669,6 +637,7 @@ describe('StandardCampaign tests', function() {
   });
 
   // asserts not added since campaign class needs additional methods to support actual stage
+  // NOTE this test has to be run before the campaign has expired (i.e., before executing a time delay)
   // TODO determine a better way to determing the campaign stage since its trigger requires a transaction
   it('gets the campaign stage (operation/ended)', function(done) {
 
@@ -691,6 +660,7 @@ describe('StandardCampaign tests', function() {
     });
 
   });
+
 
   // the following test method does not work
   // the object weifund.classes.StandardCampaign.functionHashes['version()']
@@ -788,11 +758,41 @@ describe('StandardCampaign tests', function() {
           // stops and uninstalls the filter
           filter.stopWatching();
         })
-        .fail(myutil.logErrorThen)
+            .fail(myutil.logErrorThen)
         // TODO assert filter result content is correct
 
-        .done(()=>{
-          done();
-        });
-      });
+            .done(()=>{
+		done();
+            });
     });
+
+
+// TODO in progress
+    it('checks the status of the campaign after a time delay that expires the campaign. This test should fail since the second contribution should not be permitted when the campaign is expired.', function(done) {
+	//this.timeout(40000);
+
+	q()
+	// make an initial contribution
+	    .then(()=>{
+		return myutil.sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
+	    }).then(myutil.logThen)
+
+	    .then(myutil.getTransactionReceipt).then(myutil.logThen)
+
+	// expire the campaign
+	    .then(()=>{ increaseTime(2000000); })
+
+	// send a second contribution after the campaign has expired
+	    .then(()=>{
+		return myutil.sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
+	    }).then(myutil.logThen)
+
+	// assert that the contribution did not succeed
+	    .then(function(res) { assert.ok(res === undefined, 'Send contribution to campaign is possible even though contract has expired'); })
+	    .fail(myutil.logErrorThen)
+
+	    .then(done);
+
+    });
+
+});

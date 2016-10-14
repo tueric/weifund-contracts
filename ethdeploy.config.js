@@ -12,6 +12,7 @@ module.exports = {
   },
   entry: {
     testrpc: contracts,
+    morden: contracts
   },
 //  environment: 'testrpc',
   module: function(deploy, contracts, web3){
@@ -30,7 +31,7 @@ module.exports = {
         throw `Accounts error or no accounts: ${accountsError}`;
       }
 
-console.log('deploy:'+deploy);
+//console.log('deploy:'+deploy);
       // deploy two campaigns for reference
 //      deploy(contracts.CoffeeRunCampaign, 'Coffee Run Campaign', Math.floor(Date.now() / 1000) + 30000, 5000, accountsResult[0]);
       deploy(contracts.StandardCampaign, 'Ice Cream Run Campaign', Math.floor(Date.now() / 1000) + 22000, 2300, accountsResult[0], accountsResult[0]);
@@ -82,7 +83,8 @@ console.log('deploy:'+deploy);
 
             cb(null, ethUtil.bufferToHex(tx.serialize()));
           },
-          'host': 'https://morden.infura.io',
+          'host1': 'https://morden.infura.io',
+          'host': 'http://localhost',
           'port': 8545,
         },
         'objects': {
@@ -91,7 +93,7 @@ console.log('deploy:'+deploy);
             'from': 0, // a custom account
             'gas': 3135000, // some custom gas
           },
-          'IceCreamRunCampign': {
+          'StandardCampaign': {
             'class': 'StandardCampaign',
             'from': 0, // a custom account
             'gas': 3135000, // some custom gas
