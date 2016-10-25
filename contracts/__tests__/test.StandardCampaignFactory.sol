@@ -1,6 +1,7 @@
 import "dapple/test.sol";
 import "StandardCampaignFactory.sol";
 import "StandardCampaign.sol";
+import "__tests__/MyTestFramework.sol";
 
 contract User {
   function newCampaign(address _targetAddress,
@@ -13,11 +14,11 @@ contract User {
   }
 }
 
-contract StandardCampaignFactoryTest is Test {
+contract StandardCampaignFactoryTest is MyTestFramework {
   StandardCampaignFactory target;
   StandardCampaign targetCampaign;
 
-  function test_refundStandardCampaignFactory() {
+  function test_standardCampaignFactory() {
     target = new StandardCampaignFactory();
 
     // build new user
@@ -25,13 +26,13 @@ contract StandardCampaignFactoryTest is Test {
     user.send(1000);
 
     address newCampaignAddress = user.newCampaign(address(target), "Nick", now + 100000, 300, address(user));
-    assertTrue(bool(newCampaignAddress != address(0)));
-    assertTrue(bool(target.isService(newCampaignAddress)));
-    assertFalse(target.isService(address(0)));
+    assert(newCampaignAddress != address(0), "Campaign was created with address 0x0");
+    assert(target.isService(newCampaignAddress) == true, "Factory did not accept new campaign as a service");
+    assert(target.isService(address(0)) == false, "Factory accepted a service with address 0x0");
 
     targetCampaign = StandardCampaign(newCampaignAddress);
 
-    assertEq(uint256(targetCampaign.fundingGoal()), uint256(300));
-    assertEq(targetCampaign.owner(), address(user));
+    assert(uint256(targetCampaign.fundingGoal()) == uint256(300), "Campaign does not have expected funding goal");
+    assert(targetCampaign.owner() == address(user), "Campaign owner is not as expected");
   }
 }

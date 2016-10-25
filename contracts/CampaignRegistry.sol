@@ -1,6 +1,10 @@
 import "Owner.sol";
 
-contract CampaignRegistryInterface {
+contract CampaignRegistryEvents {
+  event CampaignRegistered(address _campaign, address _interface, uint256 _campaignID);
+}
+
+contract CampaignRegistryInterface is CampaignRegistryEvents {
   /// @notice call to register the '_campaign' with the '_interface'
   /// @param _campaign the address of the campaign contract
   /// @param _interface the address of the campaign interface contract, if any
@@ -45,7 +49,7 @@ contract CampaignRegistry is CampaignRegistryInterface {
         throw;
       }
     }
-    _;
+    _
   }
 
   /// @notice inavalidate fallback method support
@@ -106,5 +110,4 @@ contract CampaignRegistry is CampaignRegistryInterface {
   Campaign[] public campaigns;
   mapping(address => uint) public ids;
 
-  event CampaignRegistered(address _campaign, address _interface, uint256 _campaignID);
 }

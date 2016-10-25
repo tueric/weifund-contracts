@@ -126,6 +126,13 @@ const setup = function(_web3, _q) {
   q = _q;
 };
 
+const toStringConstants = function(contractObj, contractInterface) {
+  const constants = contractInterface.filter(_=>{ return _.constant; });
+  return q.allSettled(constants.map(_=> {
+    return q.nbind(contractObj[_.name],contractObj)().then(logAfterResolve(_.name+'::'));
+  }));
+}
+
 module.exports = {
   setup: setup,
   web3: web3,
@@ -141,6 +148,7 @@ module.exports = {
   logEnd: logEnd,
   logAfterResolve: logAfterResolve,
   logThen: logThen,
-  logErrorThen: logErrorThen  
+  logErrorThen: logErrorThen,
 
+  toStringConstants: toStringConstants
 };

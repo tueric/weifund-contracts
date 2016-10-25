@@ -1,42 +1,46 @@
-contract CurationRegistryInterface {
+contract CurationRegistryEvents {
+  event CampaignApproved(address _curator, address _service);
+}
+
+contract CurationRegistryInterface is CurationRegistryEvents {
   /// @notice approve a specific campaign contract
   /// @param _service The contract address of the service approved
   function approve(address _service) public {}
 
   /// @notice input curator ID and get the curator sender address
   /// @param _curatorID the ID of the curator
-  /// @returns the message sender (msg.sender) address of the curator
+  /// returns the message sender (msg.sender) address of the curator
   function curatorAddressOf(uint256 _curatorID) public constant returns (address) {}
 
   /// @notice input the curator sender address and get the curator ID
   /// @param _curator the curator sender address
-  /// @returns the curator ID
+  /// returns the curator ID
   function curatorIDOf(address _curator) public constant returns (uint256) {}
 
   /// @notice input the curator sender address and the service address get bool "is approved" value
   /// @param _curator the curator sender address
   /// @param _service the service address
-  /// @returns a bool "is service approved by curator" value
+  /// returns a bool "is service approved by curator" value
   function serviceApprovedBy(address _curator, address _service) public constant returns (bool) {}
 
   /// @notice input the curator and approval ID get the service address
   /// @param _curator the curator sender address
   /// @param _approvalID the approval ID
-  /// @returns the address of the service
+  /// returns the address of the service
   function serviceAddressOf(address _curator, uint _approvalID) public constant returns (address) {}
 
-  event CampaignApproved(address _curator, address _service);
 }
 
 contract CurationRegistry is CurationRegistryInterface {
   function approve(address _service) public {
     // check to see if the curator is added
     // if not add the curator
-    if (curators[ids[msg.sender]] != msg.sender) {
+    if (curators.length == 0 || curators[ids[msg.sender]] != msg.sender) {
       uint curatorID = curators.length++;
       curators[curatorID] = msg.sender;
       ids[msg.sender] = curatorID;
     }
+
 
     // if the service is not already approved, approve the campaign address
     // keep array storage clean
@@ -58,9 +62,7 @@ contract CurationRegistry is CurationRegistryInterface {
   }
 
   function serviceApprovedBy(address _curator, address _service) public constant returns (bool) {
-    // TODO fix this bug, array cannot be indexed by service address
-    //return approved[_curator][_service];
-    return true;
+    return approvals[_curator][_service];
   }
 
   function serviceAddressOf(address _curator, uint _approvalID) public constant returns (address) {

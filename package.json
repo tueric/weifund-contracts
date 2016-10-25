@@ -11,7 +11,7 @@
     "build:deploydebug": "node --debug-brk ./deploy.js",
     "build:browserify": "browserify --s WeiFundContracts index.js -o dist/weifund-contracts.js",
     "build": "npm run build:contracts && npm run build:browserify && npm run build:deploy",
-    "test:solidity": "dapple test",
+    "test:solidity": "node node_modules/dapple/cmd/main.js test",
     "test:js": "tape ./contracts/**/*.js",
     "test:mocha": "mocha ./contracts/__tests__/*.js",
     "test:mocha:param": "mocha",
@@ -19,9 +19,13 @@
     "test:mocha:debug": "mocha --debug-brk ./contracts/__tests__/*.js",
     "test:other": "npm run test:solidity && npm run test:js",
     "inspector": "~/.npm-global/bin/node-inspector &",
+
     "nodedebug": "~/.npm-global/bin/node-debug",
     "test:debug": "(npm run node:stop) && (npm run build:contracts) && (npm run build:browserify) && (npm run testrpc:start) && (sleep 3s) && (npm run inspector) &&  (npm run build:deploydebug) && (sleep 3s) && (npm run test:mocha:debug)",
+
+    "test:payout": "(npm run node:stop) && (sleep 2s)  && (npm run testrpc:start) && (sleep 3s)  &&  (npm run build:deploy) && (npm run test:mocha:param ./contracts/__tests__/test.StandardCampaign.payout.js)",
     "test": "(npm run node:stop) && (sleep 2s)  && (npm run testrpc:start) && (sleep 3s)  &&  (npm run build:deploy) && (npm run test:mocha)",
+    "test1": "(npm run node:stop) && (sleep 2s)  && (npm run testrpc:start) && (sleep 3s)  &&  (npm run build:deploy) && (npm run test:mocha)",
     "jshint": "jshint ./*.js",
     "jshint:recursive": "find . -type f \\( -name '*.json' -o -name '*.js' \\) -a ! -path './node_modules/*' ! -path './dist/*' ! -path './lib/*' -exec jshint {} \\;"
   },
@@ -40,22 +44,12 @@
     "url": "https://github.com/WeiFund/weifund-contracts/issues"
   },
   "homepage": "https://github.com/WeiFund/weifund-contracts#readme",
-  "dependencies": {
-    "bignumber.js": "^2.4.0",
-    "jsonpath": "^0.2.6"
-  },
   "devDependencies": {
-    "browserify": "^13.0.1",
-    "chaithereum": "^1.4.0",
-    "ethdeploy": "git://github.com/SilentCicero/ethdeploy",
-    "ethdeploy-cli": "git://github.com/SilentCicero/ethdeploy-cli",
-    "ethdeploy-provider-http": "git://github.com/SilentCicero/ethdeploy-provider-http",
-    "ethdeploy-provider-zero-client": "git://github.com/SilentCicero/ethdeploy-provider-zero-client",
-    "ethereumjs-testrpc": "^2.0.8",
-    "ethereumjs-tx": "^1.1.2",
-    "ethereumjs-util": "^4.5.0",
-    "jshint": "^2.9.3",
-    "mocha": "^3.0.2",
-    "tape": "^4.6.0"
+      "dapple": "^0.7.2",
+      "ethdeploy": "git+https://github.com/SilentCicero/ethdeploy.git",
+      "ethdeploy-provider-http": "^0.1.0",
+      "ethdeploy-provider-zero-client": "^0.1.7",
+      "ethereumjs-tx": "^1.1.2",
+      "ethereumjs-util": "^4.5.0"
   }
 }

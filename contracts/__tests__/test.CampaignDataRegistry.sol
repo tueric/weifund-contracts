@@ -1,10 +1,17 @@
 import "dapple/test.sol";
 import "CampaignDataRegistry.sol";
 import "Owner.sol";
+import "__tests__/MyTestFramework.sol";
+
+contract FakeCampaign is Owner {
+  function FakeCampaign() {
+    owner = msg.sender;
+  }
+}
 
 contract User {
   function createCampaign() returns (address) {
-    return address(new Owner());
+    return address(new FakeCampaign());
   }
 
   function registerCampaign(address _registry, address _campaign, bytes _data) {
@@ -13,8 +20,7 @@ contract User {
   }
 }
 
-contract CampaignDataRegistryTest is Test {
-  event CampaignDataRegistered(address _campaign);
+contract CampaignDataRegistryTest is MyTestFramework, CampaignDataRegistryEvents {
   CampaignDataRegistry target;
 
   function resetTarget() {
@@ -27,11 +33,11 @@ contract CampaignDataRegistryTest is Test {
 
     // build new user
     User user = new User();
-    user.send(3000000);
+    
 
-    // new campaign
+    // new (fake) campaign
     address campaign = user.createCampaign();
-    assertTrue(bool(campaign != address(0)));
+    assert(bool(campaign != address(0)), "Campaign address 0x0");
 
     // expect events
     expectEventsExact(target);

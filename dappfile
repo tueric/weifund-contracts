@@ -2,7 +2,7 @@ version: 1.0.0
 tags: []
 layout:
   sol_sources: contracts
-  build_dir: lib
+  build_dir: build
 dependencies: {}
 ignore: []
 name: weifund-contracts

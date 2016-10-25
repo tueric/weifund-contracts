@@ -1,6 +1,11 @@
 import "Owner.sol";
 
-contract CampaignDataRegistryInterface {
+
+contract CampaignDataRegistryEvents {
+  event CampaignDataRegistered(address _campaign);
+}
+
+contract CampaignDataRegistryInterface is CampaignDataRegistryEvents {
   /// @notice call `register` to register your campaign with a specified data store
   /// @param _campaign the address of the crowdfunding campaign
   /// @param _data the data store of that campaign, potentially an ipfs hash
@@ -11,7 +16,6 @@ contract CampaignDataRegistryInterface {
   /// @return the data stored in bytes
   function storedData(address _campaign) constant returns (bytes dataStored);
 
-  event CampaignDataRegistered(address _campaign);
 }
 
 contract CampaignDataRegistry is CampaignDataRegistryInterface {
@@ -23,7 +27,7 @@ contract CampaignDataRegistry is CampaignDataRegistryInterface {
     }
 
     // otherwise, carry on with normal state changing logic
-    _;
+    _
   }
 
   /// @notice inavalidate fallback method support

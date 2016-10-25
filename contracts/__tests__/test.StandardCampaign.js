@@ -84,6 +84,11 @@ var provider = TestRPC.provider({
 var accounts = [];
 
 
+// TODO: is this the best way to get the campaign address? it expects to get it from a previously serialized deployment
+const icampaign = weifund.environments.testrpc.StandardCampaign;
+
+var campaignInstance; // the campaign that is to be used for each test; likely this instance is shared between parallel tests, which is okay for now
+
 // returns a list of instances by type of contract requested
 // not tested
 // simplifies factory
@@ -155,11 +160,6 @@ const increaseTime = function(time) {
 
   return deferred.promise;
 };
-
-// TODO: is this the best way to get the campaign address? it expects to get it from a previously serialized deployment
-const icampaign = weifund.environments.testrpc.StandardCampaign;
-
-var campaignInstance; // the campaign that is to be used for each test; likely this instance is shared between parallel tests, which is okay for now
 
 before('StandardCampaign setup', ()=> {
   console.log('StandardCampaign setup');
@@ -359,209 +359,6 @@ describe('StandardCampaign tests', function() {
     .done(()=>{done(); });
   });
 
-  // TODO in progress
-  // TODO see why timeout is not succeeding
-  // TODO see why payout to beneficiary is not succeeding
-  it.skip('checks that a campaign can reach its funding goal and pay out', function(done) {
-    this.timeout(20000);
-
-    q()
-    .then(()=>{
-      console.log('campaignInstance:');
-      console.log(campaignInstance);
-    })
-    .then(()=>{
-      return q.nbind(campaignInstance.expiry, campaignInstance)();
-    }).then(myutil.logAfterResolve('expiry:'))
-
-    // assert that the stage is 0 (operational)
-    .then(()=>{
-      return q.nbind(campaignInstance.stage, campaignInstance)();
-    })
-    .then(myutil.logAfterResolve('stage num:'))
-    .then(function(res) { assert.ok(res.equals(0), 'Campaign stage is not set to operational'); })
-    .fail(myutil.logErrorThen)
-
-    .then(()=>{
-      return q.nbind(campaignInstance.getNow,campaignInstance)();
-    }).then(myutil.logAfterResolve('now:'))
-
-    .then(()=>{
-      return q.nbind(campaignInstance.fundingGoal, campaignInstance)();
-    })
-    .then(myutil.logAfterResolve('funding goal:'))
-
-    .then(()=>{
-      return q.nbind(campaignInstance.amountRaised,campaignInstance)();
-    })
-    .then(myutil.logAfterResolve('amount raised:'))
-
-
-    .then(()=>{
-      return myutil.getBalances(accounts);
-    })
-    .then(myutil.logAfterResolve('balances01:'))
-
-    // send an transaction that makes campaign reach funding goal
-    .then(()=>{
-      return myutil.sendTransaction(accounts[0],icampaign.address,1,0.1,campaignInstance.contributeMsgValue);
-    }).then(myutil.logAfterResolve('transaction hash:'))
-
-    .then(()=>{
-      return myutil.getBalances(accounts);
-    })
-    .then(myutil.logAfterResolve('balances02:'))
-
-    .then(()=>{
-      return q.nbind(campaignInstance.amountRaised,campaignInstance)();
-    }).then(myutil.logAfterResolve('amount raised:'))
-
-    // expire the campaign
-    .then(()=>{
-      return q.nbind(provider.sendAsync, provider, { method: 'evm_increaseTime', params: [2000000] })();
-    })
-    .then(myutil.logAfterResolve('evm_increaseTime*:'))
-
-    .then(()=>{
-      return q.nbind(provider.sendAsync, provider, { method: 'evm_mine' })();
-    })
-    .then(myutil.logAfterResolve('evm_mine*:'))
-
-// helper function removed
-/*
-    .then(()=>{
-      return q.nbind(campaignInstance.getStageAt,campaignInstance)();
-    }).then(myutil.logAfterResolve('getstageat:'))
-    .then((res)=>{ assert.ok(res.equals(2), 'Campaign stage is not set to not operational and goal reached'); })
-*/
-
-    .then(()=>{
-      return q.nbind(campaignInstance.getNow,campaignInstance)();
-    }).then(myutil.logAfterResolve('getNow:'))
-
-    // assert that the stage is 0 (operational, funding goal reached)
-    // it should be this way because stage is only updated on a transaction call
-    // not blockchain time or block property updates
-    // However, it is suggested that a function be available to update the stage independently of transaction processing
-    .then(()=>{
-      return q.nbind(campaignInstance.stage, campaignInstance)();
-    })
-    .then(myutil.logAfterResolve('stage:'))
-    .then(res=>{ assert.ok(res.equals(2), 'Campaign stage is not set to not operational and goal reached'); })
-    .fail(myutil.logErrorThen) // the assertion is not serious enough to stop
-
-    // trigger the campaign stage to be updated, the only way to do that successfully right now is by being the owner and calling payout when successful
-
-    // assert that a transaction receipt was issued
-
-    // problems start here
-
-    // does not work
-    .then(()=>{
-      var d = q.defer();
-      campaignInstance.payoutToBeneficiary({},'latest',(err,res)=>{
-        console.log('_try0');
-        console.log(err);
-        console.log(res);
-        d.resolve(res);
-      });
-      return d.promise;
-    })
-
-    .then(()=>{
-      return q.nbind(campaignInstance.payoutToBeneficiary, campaignInstance)();
-    })
-    .then(myutil.logAfterResolve('_try1:'))
-
-
-    .then(()=>{
-
-      var d = q.defer();
-
-      campaignInstance.payoutToBeneficiary.apply(campaignInstance,[{ 'from': accounts[0], 'to': icampaign.address, 'value': web3.toWei(0.1,'ether'), 'gas': 2000000 },function(err,res) {
-        console.log('try2:');
-        console.log(err);
-        console.log(res);
-        d.resolve(res);
-      }]);
-      return d.promise;
-
-    })
-    .then(myutil.logAfterResolve('_try2:'))
-
-    .then(()=>{
-      return myutil.getBalances(accounts);
-    })
-    .then(myutil.logAfterResolve('balances11:'))
-
-    .then(()=>{
-      return myutil.sendTransaction(accounts[0], icampaign.address, 0.1, 0.1, icampaign.payoutToBeneficiary);
-    }).then(myutil.logAfterResolve('_try4:'))
-
-    .then(()=>{
-      return myutil.getBalances(accounts);
-    })
-    .then(myutil.logAfterResolve('balances12:'))
-
-    .done(()=>{done();});
-
-/*
-    q()
-    .then(()=>{
-      return myutil.getBalances(accounts);
-    })
-    .then(myutil.logAfterResolve('balances1:'))
-
-    .then(()=>{
-      return myutil.sendTransaction(accounts[0],icampaign.address,0,.1,campaignInstance.payoutToBeneficiary);
-    })
-    .then(myutil.logAfterResolve('payout sendtransaction tx hash:'))
-    .then((res)=>{
-      assert.ok(res, 'payoutToBeneficiary transaction did not issue transaction hash');
-    })
-    .fail(myutil.logErrorThen)
-
-    .then(()=>{
-      console.log('****************');
-      console.log(accounts);
-    })
-    .then(()=>{
-      return myutil.getBalances(accounts);
-    })
-    .then(myutil.logAfterResolve('balances2:'))
-
-    // make a call to the method
-    // but this doesn't work
-    .then(()=>{
-      return q.nbind(campaignInstance.payoutToBeneficiary,campaignInstance)();
-    })
-    .then(myutil.logAfterResolve('payout call tx hash:'))
-    .then((res)=>{ assert.ok(res, 'payoutToBeneficiary call did not issue transaction hash'); })
-    .fail(myutil.logErrorThen)
-
-// helper function removed
-//    .then(()=>{
-//      return q.nbind(campaignInstance.getStageAt,campaignInstance)();
-//    }).then(myutil.logAfterResolve('getStageAt:'))
-//    .then((res)=>{ assert.ok(res.equals(2), 'Campaign stage is not set to not operational and goal reached'); })
-//    .fail(myutil.logErrorThen)
-
-
-    // assert that the stage is 2 (not operational, funding goal reached)
-    .then(()=>{
-      return q.nbind(campaignInstance.stage, campaignInstance)();
-    }).then(myutil.logAfterResolve('stage last:'))
-    .then((res)=>{ assert.ok(res.equals(2), 'Campaign stage is not set to not operational and goal reached'); })
-    .fail(myutil.logErrorThen)
-
-
-
-    .done(()=>{
-      done()
-    });
-*/
-
-  });
 
   it('gets the campaign expiry', function(done) {
     q.nbind(campaignInstance.expiry, campaignInstance)()

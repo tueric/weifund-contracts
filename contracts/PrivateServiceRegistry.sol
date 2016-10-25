@@ -1,10 +1,14 @@
-contract PrivateServiceRegistry {
+contract PrivateServiceRegistryEvents {
+  event ServiceRegistered(address _service);
+}
+
+contract PrivateServiceRegistry is PrivateServiceRegistryEvents {
 
   modifier isRegisteredService(address _service) {
     // does the service exist in the registry, is the service address not empty
     if (services.length > 0) {
       if (services[ids[_service]] == _service && _service != address(0)) {
-        _;
+        _
       }
     }
   }
@@ -12,7 +16,7 @@ contract PrivateServiceRegistry {
   modifier isNotRegisteredService(address _service) {
     // if the service '_service' is not a registered service
     if (!isService(_service)) {
-      _;
+      _
     }
   }
 
@@ -48,5 +52,4 @@ contract PrivateServiceRegistry {
   address[] public services;
   mapping(address => uint) public ids;
 
-  event ServiceRegistered(address _service);
 }
