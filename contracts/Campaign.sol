@@ -1,4 +1,11 @@
-contract Campaign {
+contract CampaignEvents {
+  // Campaign events
+  event ContributionMade (address _contributor);
+  event RefundPayoutClaimed(address _payoutDestination, uint256 _payoutAmount);
+  event BeneficiaryPayoutClaimed (address _payoutDestination, uint256 _payoutAmount);
+}
+
+contract Campaign is CampaignEvents {
   /// @notice the owner or campaign operator of the campaign
   /// @return the Ethereum standard account address of the owner specified
   function owner() constant returns(address) {}
@@ -39,8 +46,7 @@ contract Campaign {
   /// @return the campaign funding goal specified in wei as a uint256
   function amountRaised() constant returns(uint256 amount) {}
 
-  // Campaign events
-  event ContributionMade (address _contributor);
-  event RefundPayoutClaimed(address _payoutDestination, uint256 _payoutAmount);
-  event BeneficiaryPayoutClaimed (address _payoutDestination, uint256 _payoutAmount);
+  // helper function to get now value
+  function getNow() constant returns(uint nowvalue) {}
+
 }

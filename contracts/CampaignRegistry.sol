@@ -1,6 +1,10 @@
 import "Owner.sol";
 
-contract CampaignRegistryInterface {
+contract CampaignRegistryEvents {
+  event CampaignRegistered(address _campaign, address _interface, uint256 _campaignID);
+}
+
+contract CampaignRegistryInterface is CampaignRegistryEvents {
   /// @notice call to register the '_campaign' with the '_interface'
   /// @param _campaign the address of the campaign contract
   /// @param _interface the address of the campaign interface contract, if any
@@ -15,7 +19,7 @@ contract CampaignRegistryInterface {
   /// @notice call to get the interface address 'interface' of campaign '_campaignID'
   /// @param _campaignID the campaign ID
   /// @return the interface address of the camapign
-  function interfaceOf(uint256 _campaignID) constant returns (address interface);
+  function interfaceOf(uint256 _campaignID) constant returns (address _interface);
 
   /// @notice call to ge the UNIX timestamp 'registered' of when a campaign was registered
   /// @param _campaignID the camapign ID
@@ -64,7 +68,7 @@ contract CampaignRegistry is CampaignRegistryInterface {
     // and the time of registration
     campaigns[campaignID] = Campaign({
         addr: _campaign,
-        interface: _interface,
+        _interface: _interface,
         registered: now
     });
 
@@ -76,8 +80,8 @@ contract CampaignRegistry is CampaignRegistryInterface {
     return ids[_campaign];
   }
 
-  function interfaceOf(uint256 _campaignID) constant returns (address interface) {
-    return campaigns[_campaignID].interface;
+  function interfaceOf(uint256 _campaignID) constant returns (address _interface) {
+    return campaigns[_campaignID]._interface;
   }
 
   function registeredAt(uint256 _campaignID) constant returns (uint256 registered) {
@@ -97,7 +101,7 @@ contract CampaignRegistry is CampaignRegistryInterface {
     address addr;
 
     // the address of the interface contract
-    address interface;
+    address _interface;
 
     // the UNIX block timestamp of when the campaign was registered
     uint256 registered;
@@ -106,5 +110,4 @@ contract CampaignRegistry is CampaignRegistryInterface {
   Campaign[] public campaigns;
   mapping(address => uint) public ids;
 
-  event CampaignRegistered(address _campaign, address _interface, uint256 _campaignID);
 }

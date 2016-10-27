@@ -39,7 +39,8 @@ const assert = require('assert');
 const q = require('q');
 const util = require('util');
 
-const chaithereum = require('chaithereum');
+
+//const chaithereum = require('chaithereum');
 //const expect = chaithereum.chai.expect
 
 // should approach
@@ -59,6 +60,10 @@ var provider = new Web3.providers.HttpProvider('http://localhost:8545');
 var web3 = new Web3(provider);
 //web3.setProvider(provider);
 
+const myutil = require('./myutil.js');
+myutil.setup(web3,q);
+
+
 // using a different web3 instance is possible, but currently auto deployment
 // is only enabled on an external testrpc
 
@@ -77,53 +82,12 @@ var provider = TestRPC.provider({
 
 
 var accounts = [];
-//var balances = [];
-
-// get the contract type from web3
-var contract = function(typeinterface) {
-  return web3.eth.contract(JSON.parse(typeinterface));
-};
-
-// log error
-var cle = function(err) {
-  console.error(util.inspect(err, { depth: null, colors: true} ));
-  return err;
-};
-
-// log a big number to the console
-/*
-var clb = function(bn) {
-  return cl(bn.toNumber());
-};
-*/
 
 
-// simple passthrough logging function
-var cl = function(res,err) {
-  //    console.log(res);
-  if (res) {
-    console.log(util.inspect(res, { depth: null, colors: true} ));
-  }
-  if (err) {
-    console.error(util.inspect(err, { depth: null, colors: true} ));
-  }
-  return res;
-};
+// TODO: is this the best way to get the campaign address? it expects to get it from a previously serialized deployment
+const icampaign = weifund.environments.testrpc.StandardCampaign;
 
-// log message m before callback
-// useful for logging after an earlier promised callback completes
-// (thus logging m before logging the earlier callback result)
-var clm = function(m) {
-  return function(res,err) {
-    console.log(m);
-    return cl(res,err);
-  };
-};
-
-// non-passthrough logging function
-var cl0 = function(res) {
-  console.log(util.inspect(res, { depth: null, colors: true} ));
-};
+var campaignInstance; // the campaign that is to be used for each test; likely this instance is shared between parallel tests, which is okay for now
 
 // returns a list of instances by type of contract requested
 // not tested
@@ -135,71 +99,6 @@ const getInstancesByType = function(weifund) {
   return d.promise;
 };
 */
-
-// bignumber util tostring base 10
-const bv = function(bignumberval) {
-  return bignumberval.toString(10);
-};
-
-// transaction promise utilities
-
-// generic promise of send transaction via instance method i
-const sendTransaction = function(from, to, amount, gas, i) {
-
-  var d = q.defer();
-  var ii = i || web3.eth;
-  ii.sendTransaction({
-    'from': from,
-    'to': to,
-    'value': web3.toWei(amount,'ether'),
-    'gas': 2000000,
-    // 'gasPrice': 10,
-    // 'gas':web3.eth.gasPrice*100000 //web3.toWei(gas,'ether')
-    // 'data': web3.fromAscii('hello')
-  },
-  function(err, res) {
-    if (err)
-    console.error(err);
-    if (res)
-    console.log(res);
-    d.resolve(res);
-  });
-  return d.promise;
-};
-
-// get promised receipt given transaction hash
-const getTransactionReceipt = function(hash) {
-  var d = q.defer();
-  web3.eth.getTransactionReceipt(hash, function(err,res) { d.resolve(res); });
-  return d.promise;
-};
-
-// campaign promise utilities
-
-// get balance of given account
-const getBalance = function(o) {
-  const d = q.defer();
-  // console.log('getting balance for:' + o);
-  web3.eth.getBalance(o, 'latest', function(err,res) { if (err) console.error(err); d.resolve(res); } );
-  return d.promise;
-};
-
-// get promised balances for list of balances
-const getBalances = function(list) {
-  // console.log('getBalances:',list);
-  return q.allSettled(list.map(function(o) {
-    return getBalance(o);
-  }));
-};
-
-// get promised list of accounts from env
-const getAccounts = function() {
-  var d = q.defer();
-  web3.eth.getAccounts(function(err,accounts) {
-    d.resolve(accounts);
-  });
-  return d.promise;
-};
 
 // helper method that promises a method call resolves its callback result
 // this is a variant of q's node-style callback helpers
@@ -262,25 +161,30 @@ const increaseTime = function(time) {
   return deferred.promise;
 };
 
-const icampaign = weifund.environments.testrpc.IceCreamRunCampaign;
+before('StandardCampaign setup', ()=> {
+  console.log('StandardCampaign setup');
 
-before(()=> {
-  // another way to deploy instead of through npm
-  // makes visible the deployment into the environment right in the unit test itself
-  // ** does not yet work, not tested **
-  // TODO need to make sure that environment file is generated before its import into this file
-  //const deploy = require('../deploy.js');
-
-  return chaithereum.promise
-  .then(getAccounts)
-  .then(clm('accounts:'))
-  .then(res=>{
-    accounts = res;
+  // start a promise chain
+  return q()
+  // get accounts
+  .then(myutil.getAccounts)
+  // then log the accounts to the console
+  .then(myutil.logAfterResolve('accounts:'))
+  // then assign the accounts to a global, asserting a non-empty set is present
+  .then(_accounts=>{
+    accounts = _accounts;
     assert.ok(accounts.length > 0, 'No accounts detected');
   })
-  .fail(cle)
+  // continue even if the assertion failed
+  .fail(myutil.logErrorThen)
+
+  // retrieve the campaign address
+  .thenResolve(icampaign.address)
+  // log the campaign address to the console
+  .then(myutil.logAfterResolve('standard campaign address:'))
+  // and assert that it is okay
   .then(()=>{
-    console.log('StandardCampaign address: ',icampaign.address);
+    assert.ok(icampaign.address, 'No campaign address found, expected campaign to be deployed');
   })
   .then(()=>{
     return q();
@@ -288,39 +192,9 @@ before(()=> {
 
 });
 
-var campaignInstance;
-
 beforeEach(() => {
-  var c = contract(weifund.classes.StandardCampaign.interface);
+  var c = myutil.contract(weifund.classes.StandardCampaign.interface);
   campaignInstance = c.at(icampaign.address);
-});
-
-
-describe('Environment tests', function() {
-  it('Send a transaction from accounts[0] to accounts[1]', function(done) {
-    var a0, a1;
-
-    q()
-    .then(()=>{ return getBalances(accounts); }).then(clm('balances before transaction:'))
-    .then((res)=>{ a0 = res[0]; a1 = res[1]; })
-
-    .then(()=>{ return sendTransaction(accounts[0],accounts[1],1,1); }).then(clm('transaction hash:'))
-    .then((res)=>{ assert.ok(res, 'Transaction hash not generated'); return res; })
-
-    .then(getTransactionReceipt).then(clm('transaction receipt:'))
-    .then((res)=>{ assert.ok(res, 'Receipt not generated'); })
-
-    .then(()=>{ return getBalances(accounts); }).then(clm('balances after transaction:'))
-    .done((res)=>{
-      for (var i = 0; i < res.length; i++) {
-        assert(bv(res[i].value) >= 0, 'Balance not correct for account '+res[i]);
-      }
-      assert(res[0].value.lessThan(a0.value), 'Balance did not decrease for account[0]');
-      assert(res[1].value.greaterThan(a1.value), 'Balance did not increase for account[1]');
-      done();
-    });
-  });
-
 });
 
 describe('StandardCampaign tests', function() {
@@ -345,11 +219,11 @@ describe('StandardCampaign tests', function() {
     //   return d.promise;
     // })
 
-    .then(clm('version'))
+    .then(myutil.logAfterResolve('version'))
     .then((res)=>{
       assert.ok(res.includes('.'), 'Version not correct');
     })
-    .fail(cle)
+    .fail(myutil.logErrorThen)
     .done(()=>{
       done();
     });
@@ -357,28 +231,28 @@ describe('StandardCampaign tests', function() {
 
 
   it('checks that a campaign initial balance is zero', function(done) {
-    q(icampaign.address).then(getBalance)
-    .then(bv) // transform bignumber into a value
-    .then(clm('campaign balance:'))
-    .then((res)=>{
-      assert.ok(res===0, 'Campaign balance not zero');
+    // resolve the campaign address and then get its balance
+    q(icampaign.address).then(myutil.getBalance)
+    .then(myutil.logAfterResolve('campaign balance:'))
+    .then((campaignBalance)=>{
+      assert.ok(campaignBalance.equals(0), 'Campaign balance not zero');
     })
-    .fail(cle)
+    .fail(myutil.logErrorThen)
     .done(()=>{
       done();
     });
   });
 
   it('sends a transaction from one user account to a campaign', function(done) {
-    sendTransaction(accounts[0],icampaign.address,1,1)
-    .then(cl)
-    .thenResolve(icampaign.address).then(getBalance)
-    .then(bv)
-    .then(clm('campaign balance:'))
+    myutil.sendTransaction(accounts[0],icampaign.address,1,1)
+    .then(myutil.logThen)
+    .thenResolve(icampaign.address).then(myutil.getBalance)
+    .then(myutil.convertBigNumberToBase10)
+    .then(myutil.logAfterResolve('campaign balance:'))
     .then((res)=>{
       assert.ok(res>0, 'Campaign balance not greater than zero');
     })
-    .fail(cle)
+    .fail(myutil.logErrorThen)
     .done(()=>{
       done();
     });
@@ -393,28 +267,28 @@ describe('StandardCampaign tests', function() {
     })
 
     .then(()=>{
-      return sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
+      return myutil.sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
     })
-    .then(clm('transaction hash:'))
+    .then(myutil.logAfterResolve('transaction hash:'))
     .then((res)=>{
       assert.ok(res, 'Transaction hash not issued');
       return res;
     })
-    .fail(cle)
+    .fail(myutil.logErrorThen)
 
-    .then(getTransactionReceipt)
-    .then(clm('transaction receipt:'))
+    .then(myutil.getTransactionReceipt)
+    .then(myutil.logAfterResolve('transaction receipt:'))
     .then((res)=>{
       assert.ok(res.logs !== undefined && res.logs.length > 0);
     })
-    .fail(cle)
+    .fail(myutil.logErrorThen)
 
     .then(()=>{ return q.nbind(campaignInstance.amountRaised, campaignInstance)(); })
-    .then(clm('Amount raised:'))
+    .then(myutil.logAfterResolve('Amount raised:'))
     .then((res)=>{
       assert.ok(res.greaterThan(ca), 'Campaign amountRaised did not increase due to contribution');
     })
-    .fail(cle)
+    .fail(myutil.logErrorThen)
 
     .done(()=>{
       done();
@@ -422,26 +296,27 @@ describe('StandardCampaign tests', function() {
   });
 
   it('sends two contributions to a campaign and retrieves the contribution ids', function(done) {
-    sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue)
-    .then(clm('first transaction hash:'))
+    this.timeout(5000);
+    myutil.sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue)
+    .then(myutil.logAfterResolve('first transaction hash:'))
     .then((res)=>{ assert.ok(res, 'First transaction hash not issued'); return res; })
 
-    .then(getTransactionReceipt).then(clm('first transaction receipt:'))
+    .then(myutil.getTransactionReceipt).then(myutil.logAfterResolve('first transaction receipt:'))
     .then((res)=>{ assert.ok(res, 'First transaction receipt not issued'); })
-    .fail(cle)
+    .fail(myutil.logErrorThen)
 
     .then(()=>{
-      return sendTransaction(accounts[0],icampaign.address, 0.5, 0.1,campaignInstance.contributeMsgValue);
-    }).then(clm('second transaction hash:'))
+      return myutil.sendTransaction(accounts[0],icampaign.address, 0.5, 0.1,campaignInstance.contributeMsgValue);
+    }).then(myutil.logAfterResolve('second transaction hash:'))
     .then((res)=>{
       assert.ok(res, 'Second transaction hash not issued');
       return res;
     })
-    .fail(cle)
+    .fail(myutil.logErrorThen)
 
-    .then(getTransactionReceipt).then(clm('second transaction receipt:'))
+    .then(myutil.getTransactionReceipt).then(myutil.logAfterResolve('second transaction receipt:'))
     .then((res)=>{ assert.ok(res, 'Second transaction receipt not issued'); })
-    .fail(cle)
+    .fail(myutil.logErrorThen)
 
     // get the list of contribution ids for the accounts transaction's
     // TODO rewrite the call as async
@@ -456,12 +331,12 @@ describe('StandardCampaign tests', function() {
       d.resolve(ret);
       return d.promise;
     })
-    .then(clm('contribution ids:'))
+    .then(myutil.logAfterResolve('contribution ids:'))
     .then((res)=>{
       assert.ok(res.length > 0, 'At least two contribution ids not obtained from campaign for account');
       return res;
     })
-    .fail(cle)
+    .fail(myutil.logErrorThen)
 
     // get the contribution objects for the given contribution ids
     // TODO rewrite the call as async
@@ -473,257 +348,25 @@ describe('StandardCampaign tests', function() {
       }
       d.resolve(ret);
       return d.promise;
-    }).then(clm('contribution instances:'))
+    }).then(myutil.logAfterResolve('contribution instances:'))
     .then((res)=>{
       // TODO perhaps do some stricter type checking of the contribution type
-      // TODO update the environment setup to clear the vm so that we know exactly how many transactions to expect, this is resolved by using it.only instead for the test method
-      assert.ok(res.length > 2, 'At least two contribution instances not obtained from campaign for account');
+      assert.ok(res.length >= 2, 'At least two contribution instances not obtained from campaign for account');
       return res;
     })
-    .fail(cle)
+//    .fail(myutil.logErrorThen)
 
     .done(()=>{done(); });
   });
 
-  // TODO in progress
-  // TODO see why timeout is not succeeding
-  // TODO see why payout to beneficiary is not succeeding
-  it.skip('checks that a campaign can reach its funding goal and pay out', function(done) {
-    this.timeout(20000);
-
-    q()
-    .then(()=>{
-      console.log('campaignInstance:');
-      console.log(campaignInstance);
-    })
-    .then(()=>{
-      return q.nbind(campaignInstance.expiry, campaignInstance)();
-    }).then(clm('expiry:'))
-
-    // assert that the stage is 0 (operational)
-    .then(()=>{
-      return q.nbind(campaignInstance.stage, campaignInstance)();
-    })
-    .then(clm('stage num:'))
-    .then(function(res) { assert.ok(res.equals(0), 'Campaign stage is not set to operational'); })
-    .fail(cle)
-
-    .then(()=>{
-      return q.nbind(campaignInstance.getNow,campaignInstance)();
-    }).then(clm('now:'))
-
-    .then(()=>{
-      return q.nbind(campaignInstance.fundingGoal, campaignInstance)();
-    })
-    .then(clm('funding goal:'))
-
-    .then(()=>{
-      return q.nbind(campaignInstance.amountRaised,campaignInstance)();
-    })
-    .then(clm('amount raised:'))
-
-
-    .then(()=>{
-      return getBalances(accounts);
-    })
-    .then(clm('balances01:'))
-
-    // send an transaction that makes campaign reach funding goal
-    .then(()=>{
-      return sendTransaction(accounts[0],icampaign.address,1,0.1,campaignInstance.contributeMsgValue);
-    }).then(clm('transaction hash:'))
-
-    .then(()=>{
-      return getBalances(accounts);
-    })
-    .then(clm('balances02:'))
-
-    .then(()=>{
-      return q.nbind(campaignInstance.amountRaised,campaignInstance)();
-    }).then(clm('amount raised:'))
-
-    // expire the campaign
-    .then(()=>{
-      return q.nbind(provider.sendAsync, provider, { method: 'evm_increaseTime', params: [2000000] })();
-    })
-    .then(clm('evm_increaseTime*:'))
-
-    .then(()=>{
-      return q.nbind(provider.sendAsync, provider, { method: 'evm_mine' })();
-    })
-    .then(clm('evm_mine*:'))
-
-// helper function removed
-/*
-    .then(()=>{
-      return q.nbind(campaignInstance.getStageAt,campaignInstance)();
-    }).then(clm('getstageat:'))
-    .then((res)=>{ assert.ok(res.equals(2), 'Campaign stage is not set to not operational and goal reached'); })
-*/
-
-    .then(()=>{
-      return q.nbind(campaignInstance.getNow,campaignInstance)();
-    }).then(clm('getNow:'))
-
-    // assert that the stage is 0 (operational, funding goal reached)
-    // it should be this way because stage is only updated on a transaction call
-    // not blockchain time or block property updates
-    // However, it is suggested that a function be available to update the stage independently of transaction processing
-    .then(()=>{
-      return q.nbind(campaignInstance.stage, campaignInstance)();
-    })
-    .then(clm('stage:'))
-    .then(res=>{ assert.ok(res.equals(2), 'Campaign stage is not set to not operational and goal reached'); })
-    .fail(cle) // the assertion is not serious enough to stop
-
-    // trigger the campaign stage to be updated, the only way to do that successfully right now is by being the owner and calling payout when successful
-
-    // assert that a transaction receipt was issued
-
-    // problems start here
-
-    // does not work
-    .then(()=>{
-      var d = q.defer();
-      campaignInstance.payoutToBeneficiary({},'latest',(err,res)=>{
-        console.log('_try0');
-        console.log(err);
-        console.log(res);
-        d.resolve(res);
-      });
-      return d.promise;
-    })
-
-    .then(()=>{
-      return q.nbind(campaignInstance.payoutToBeneficiary, campaignInstance)();
-    })
-    .then(clm('_try1:'))
-
-
-    .then(()=>{
-
-      var d = q.defer();
-
-      campaignInstance.payoutToBeneficiary.apply(campaignInstance,[{ 'from': accounts[0], 'to': icampaign.address, 'value': web3.toWei(0.1,'ether'), 'gas': 2000000 },function(err,res) {
-        console.log('try2:');
-        console.log(err);
-        console.log(res);
-        d.resolve(res);
-      }]);
-      return d.promise;
-
-    })
-    .then(clm('_try2:'))
-
-    .then(()=>{
-      return getBalances(accounts);
-    })
-    .then(clm('balances11:'))
-
-    .then(()=>{
-      return sendTransaction(accounts[0], icampaign.address, 0.1, 0.1, icampaign.payoutToBeneficiary);
-    }).then(clm('_try4:'))
-
-    .then(()=>{
-      return getBalances(accounts);
-    })
-    .then(clm('balances12:'))
-
-    .done(()=>{done();});
-
-/*
-    q()
-    .then(()=>{
-      return getBalances(accounts);
-    })
-    .then(clm('balances1:'))
-
-    .then(()=>{
-      return sendTransaction(accounts[0],icampaign.address,0,.1,campaignInstance.payoutToBeneficiary);
-    })
-    .then(clm('payout sendtransaction tx hash:'))
-    .then((res)=>{
-      assert.ok(res, 'payoutToBeneficiary transaction did not issue transaction hash');
-    })
-    .fail(cle)
-
-    .then(()=>{
-      console.log('****************');
-      console.log(accounts);
-    })
-    .then(()=>{
-      return getBalances(accounts);
-    })
-    .then(clm('balances2:'))
-
-    // make a call to the method
-    // but this doesn't work
-    .then(()=>{
-      return q.nbind(campaignInstance.payoutToBeneficiary,campaignInstance)();
-    })
-    .then(clm('payout call tx hash:'))
-    .then((res)=>{ assert.ok(res, 'payoutToBeneficiary call did not issue transaction hash'); })
-    .fail(cle)
-
-// helper function removed
-//    .then(()=>{
-//      return q.nbind(campaignInstance.getStageAt,campaignInstance)();
-//    }).then(clm('getStageAt:'))
-//    .then((res)=>{ assert.ok(res.equals(2), 'Campaign stage is not set to not operational and goal reached'); })
-//    .fail(cle)
-
-
-    // assert that the stage is 2 (not operational, funding goal reached)
-    .then(()=>{
-      return q.nbind(campaignInstance.stage, campaignInstance)();
-    }).then(clm('stage last:'))
-    .then((res)=>{ assert.ok(res.equals(2), 'Campaign stage is not set to not operational and goal reached'); })
-    .fail(cle)
-
-
-
-    .done(()=>{
-      done()
-    });
-*/
-
-  });
-
-  // TODO in progress
-  it('checks the status of the campaign after a time delay', function(done) {
-    //this.timeout(40000);
-
-    q()
-    // make an initial contribution
-    .then(()=>{
-      return sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
-    }).then(cl)
-
-    .then(getTransactionReceipt).then(cl)
-
-    // expire the campaign
-    .then(()=>{ increaseTime(2000000); })
-
-    // send a second contribution after the campaign has expired
-    .then(()=>{
-      return sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
-    }).then(cl)
-
-    // assert that the contribution did not succeed
-    .then(function(res) { assert.ok(res !== undefined, 'Send contribution to campaign is possible even though contract has expired'); })
-    .fail(cle)
-
-    .then(done);
-
-  });
 
   it('gets the campaign expiry', function(done) {
     q.nbind(campaignInstance.expiry, campaignInstance)()
-    .then(clm('campaign expiry:'))
+    .then(myutil.logAfterResolve('campaign expiry:'))
     .then((res)=>{
       assert.ok(res.greaterThanOrEqualTo(0), 'Campaign expiry not a proper num');
     })
-    .fail(cle)
+    .fail(myutil.logErrorThen)
     .done(()=>{
       done();
     });
@@ -734,11 +377,11 @@ describe('StandardCampaign tests', function() {
     .then(()=>{
       return q.nbind(campaignInstance.beneficiary, campaignInstance)();
     })
-    .then(clm('beneficiary:'))
+    .then(myutil.logAfterResolve('beneficiary:'))
     .then((beneficiaryAddress)=>{
       assert.ok(beneficiaryAddress === accounts[0], 'Beneficiary address not set as expected');
     })
-    .fail(cle)
+    .fail(myutil.logErrorThen)
     .done(()=>{
       done();
     });
@@ -749,11 +392,11 @@ describe('StandardCampaign tests', function() {
     .then(()=>{
       return q.nbind(campaignInstance.owner, campaignInstance)();
     })
-    .then(clm('owner:'))
+    .then(myutil.logAfterResolve('owner:'))
     .then((ownerAddress)=>{
       assert.ok(ownerAddress === accounts[0], 'Owner address not set as expected');
     })
-    .fail(cle)
+    .fail(myutil.logErrorThen)
     .done(()=>{
       done();
     });
@@ -765,11 +408,11 @@ describe('StandardCampaign tests', function() {
     .then(()=>{
       return q.nbind(campaignInstance.name, campaignInstance)();
     })
-    .then(clm('campaign name:'))
+    .then(myutil.logAfterResolve('campaign name:'))
     .then((campaignName)=>{
       assert.ok(campaignName.length > 0, 'Campaign name has length zero');
     })
-    .fail(cle)
+    .fail(myutil.logErrorThen)
     .done(()=>{
       done();
     });
@@ -780,39 +423,41 @@ describe('StandardCampaign tests', function() {
     .then(()=>{
       return q.nbind(campaignInstance.fundingGoal, campaignInstance)();
     })
-    .then(clm('funding goal:'))
+    .then(myutil.logAfterResolve('funding goal:'))
     .then((fundingGoal)=>{
       assert.ok(fundingGoal.greaterThanOrEqualTo(0), 'Campaign funding goal not valid');
     })
-    .fail(cle)
+    .fail(myutil.logErrorThen)
     .done(()=>{
       done();
     });
   });
 
   // asserts not added since campaign class needs additional methods to support actual stage
+  // NOTE this test has to be run before the campaign has expired (i.e., before executing a time delay)
   // TODO determine a better way to determing the campaign stage since its trigger requires a transaction
   it('gets the campaign stage (operation/ended)', function(done) {
 
     q()
     .then(()=>{
       return q.nbind(campaignInstance.stage, campaignInstance)();
-    }).then(cl0)
+    }).then(myutil.logEnd)
 
     .then(()=>{
-      return sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
+      return myutil.sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
     })
-    .then(cl)
-    .then(getTransactionReceipt).then(cl)
+    .then(myutil.logThen)
+    .then(myutil.getTransactionReceipt).then(myutil.logThen)
     .then(()=>{
       return q.nbind(campaignInstance.stage, campaignInstance)();
     })
-    .then(cl0)
+    .then(myutil.logEnd)
     .done(()=>{
       done();
     });
 
   });
+
 
   // the following test method does not work
   // the object weifund.classes.StandardCampaign.functionHashes['version()']
@@ -841,7 +486,7 @@ describe('StandardCampaign tests', function() {
         });
         return d1.promise;
       })
-      .then(cl0)
+      .then(myutil.logEnd)
       .done(()=>{
         done();
       });
@@ -870,20 +515,20 @@ describe('StandardCampaign tests', function() {
 
       // initiate a transaction
       .then(()=>{
-        return sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
-      }).then(cl)
-      .then(getTransactionReceipt).then(cl)
+        return myutil.sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
+      }).then(myutil.logThen)
+      .then(myutil.getTransactionReceipt).then(myutil.logThen)
 
       // ensure that the topic was logged in the transaction receipt
       .then((txReceipt)=>{ topic = txReceipt.logs[0].topics[0]; })
       .then(()=>{ assert.ok(topic !== undefined, 'Did not log contribution'); })
-      .fail(cle)
+      .fail(myutil.logErrorThen)
 
       .then(()=>{
-        return sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
-      }).then(cl0)
+        return myutil.sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
+      }).then(myutil.logEnd)
 
-      .then(getAccounts).then(cl)
+      .then(myutil.getAccounts).then(myutil.logThen)
       .then(function(res) {
         var d = q.defer();
         try {
@@ -897,7 +542,7 @@ describe('StandardCampaign tests', function() {
             console.error(e);
           }
           return q(1);
-        }).then(cl0)
+        }).then(myutil.logEnd)
 
         // check filter.get logs, and stop the filter
         .then(()=>{
@@ -910,11 +555,41 @@ describe('StandardCampaign tests', function() {
           // stops and uninstalls the filter
           filter.stopWatching();
         })
-        .fail(cle)
+            .fail(myutil.logErrorThen)
         // TODO assert filter result content is correct
 
-        .done(()=>{
-          done();
-        });
-      });
+            .done(()=>{
+		done();
+            });
     });
+
+
+// TODO in progress
+    it('checks the status of the campaign after a time delay that expires the campaign. This test should fail since the second contribution should not be permitted when the campaign is expired.', function(done) {
+	//this.timeout(40000);
+
+	q()
+	// make an initial contribution
+	    .then(()=>{
+		return myutil.sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
+	    }).then(myutil.logThen)
+
+	    .then(myutil.getTransactionReceipt).then(myutil.logThen)
+
+	// expire the campaign
+	    .then(()=>{ increaseTime(2000000); })
+
+	// send a second contribution after the campaign has expired
+	    .then(()=>{
+		return myutil.sendTransaction(accounts[0],icampaign.address,0.5,0.1,campaignInstance.contributeMsgValue);
+	    }).then(myutil.logThen)
+
+	// assert that the contribution did not succeed
+	    .then(function(res) { assert.ok(res === undefined, 'Send contribution to campaign is possible even though contract has expired'); })
+	    .fail(myutil.logErrorThen)
+
+	    .then(done);
+
+    });
+
+});

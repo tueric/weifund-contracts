@@ -1,4 +1,8 @@
-contract PrivateServiceRegistry {
+contract PrivateServiceRegistryEvents {
+  event ServiceRegistered(address _service);
+}
+
+contract PrivateServiceRegistry is PrivateServiceRegistryEvents {
 
   modifier isRegisteredService(address _service) {
     // does the service exist in the registry, is the service address not empty
@@ -48,5 +52,4 @@ contract PrivateServiceRegistry {
   address[] public services;
   mapping(address => uint) public ids;
 
-  event ServiceRegistered(address _service);
 }
