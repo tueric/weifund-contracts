@@ -6,7 +6,7 @@ const environments_module = {
       address: '0x2de8ffc2a818f375669a0bf178cb4f6a89da597b',
     },
     CampaignRegistry: {
-      address: '0x486889a9a1940bb22fc387cce57c5e62981d7da3',
+      address: '0x93700217d32474d1637b4ddd04eb67b6adecf01a',
     },
     CampaignDataRegistry: {
       address: '0x51ec7392def0584ccfd5ff29f35c0d286ad0373d',
