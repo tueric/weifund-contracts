@@ -1,0 +1,8 @@
+version: 1.6.0
+tags: ["weifund","contracts","solidity"]
+layout:
+  sol_sources: contracts
+  build_dir: lib
+dependencies: {}
+ignore: []
+name: weifund-contracts

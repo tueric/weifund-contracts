@@ -1,55 +1,143 @@
 {
   "name": "weifund-contracts",
-  "version": "0.1.5",
-  "description": "The WeiFund core contracts",
-  "main": "index.js",
+  "version": "1.6.0",
+  "description": "The WeiFund Ethereum smart-contracts.",
   "scripts": {
-    "testrpc:start": "./node_modules/ethereumjs-testrpc/bin/testrpc --account='0x7dd98753d7b4394095de7d176c58128e2ed6ee600abe97c9f6d9fd65015d9b18,10000000000000000000000000000000' --account='0x8ac9f85a70e25978ff18b84db4d8ec5fb8d2a9acb08e9c49b59256c834fbacd3,10000000000000000000000' &",
-    "node:stop": "killall -9 -q node; exit 0",
-    "build:contracts": "dapple build",
-    "build:deploy": "node ./deploy.js",
-    "build:deploydebug": "node --debug-brk ./deploy.js",
-    "build:browserify": "browserify --s WeiFundContracts index.js -o dist/weifund-contracts.js",
-    "build": "npm run build:contracts && npm run build:browserify && npm run build:deploy",
-    "test:solidity": "node node_modules/dapple/cmd/main.js test",
-    "test:js": "tape ./contracts/**/*.js",
-    "test:mocha": "mocha ./contracts/__tests__/*.js",
-    "test:mocha:param": "mocha",
-    "test:mocha:env": "mocha ./contracts/__tests__/test.environment.js",
-    "test:mocha:debug": "mocha --debug-brk ./contracts/__tests__/*.js",
-    "test:other": "npm run test:solidity && npm run test:js",
-    "inspector": "~/.npm-global/bin/node-inspector &",
-
-    "nodedebug": "~/.npm-global/bin/node-debug",
-    "test:debug": "(npm run node:stop) && (npm run build:contracts) && (npm run build:browserify) && (npm run testrpc:start) && (sleep 3s) && (npm run inspector) &&  (npm run build:deploydebug) && (sleep 3s) && (npm run test:mocha:debug)",
-
-    "test:payout": "(npm run node:stop) && (sleep 2s)  && (npm run testrpc:start) && (sleep 3s)  &&  (npm run build:deploy) && (npm run test:mocha:param ./contracts/__tests__/test.StandardCampaign.payout.js)",
-    "test": "(npm run node:stop) && (sleep 2s)  && (npm run testrpc:start) && (sleep 3s)  &&  (npm run build:deploy) && (npm run test:mocha)",
-    "test1": "(npm run node:stop) && (sleep 2s)  && (npm run testrpc:start) && (sleep 3s)  &&  (npm run build:deploy) && (npm run test:mocha)",
-    "jshint": "jshint ./*.js",
-    "jshint:recursive": "find . -type f \\( -name '*.json' -o -name '*.js' \\) -a ! -path './node_modules/*' ! -path './dist/*' ! -path './lib/*' -exec jshint {} \\;"
+    "npmcheckversion": "node ./internals/scripts/npmcheckversion.js",
+    "nodejscheckversion": "node ./internals/scripts/nodejscheckversion.js",
+    "preinstall": "npm run npmcheckversion && npm run nodejscheckversion",
+    "test": "npm run test:src && npm run test:dapple && npm run test:chaithereum",
+    "test:src": "mocha src/tests/**/*.js -R spec  --compilers js:babel-core/register",
+    "test:dapple": "cd src && node ../node_modules/dapple/cmd/main.js test",
+    "test:chaithereum": "mocha src/contracts/tests/**/*.js -R spec  --compilers js:babel-core/register",
+    "prebuild": "npm run test && rimraf dist && mkdir dist",
+    "build": "npm run build:browserify",
+    "build:dapple": "cd src && node ../node_modules/dapple/cmd/main.js build",
+    "build:browserify": "node ./node_modules/browserify/bin/cmd.js src -o dist/weifund-contracts.js -t [ babelify --presets [ es2015 ] ]",
+    "prepublish": "npm run build",
+    "deploy:testnet": "npm run prepublish && node ./node_modules/ethdeploy/bin/main.js ./internals/ethdeploy/ethdeploy.testnet.config.js",
+    "release": "npmpub",
+    "pretest": "npm run lint",
+    "lint": "npm run lint:js",
+    "lint:eslint": "eslint --ignore-path .gitignore",
+    "lint:js": "npm run lint:eslint -- . ",
+    "lint:solidity": "node ./node_modules/solium/bin/solium.js --dir ./src/contracts",
+    "lint:staged": "lint-staged",
+    "coveralls": "cat ./coverage/lcov/lcov.info | coveralls"
+  },
+  "authors": [
+    "Nick Dodson <nick.dodson@consensys.net>"
+  ],
+  "engines": {
+    "npm": ">=3"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/WeiFund/weifund-contracts.git"
+    "url": "https://github.com/weifund/weifund-contracts.git"
   },
+  "main": "src/index.js",
+  "files": [
+    "CONTRIBUTING.md",
+    "internals",
+    "dist",
+    "src",
+    "docs",
+    ".github",
+    "!**/__tests__"
+  ],
   "keywords": [
     "weifund",
     "contracts",
+    "solidity",
     "ethereum"
   ],
-  "author": "Nick Dodson <thenickdodson@gmail.com>",
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/WeiFund/weifund-contracts/issues"
+  "dependencies": {
+    "web3": "^0.17.0-beta"
   },
-  "homepage": "https://github.com/WeiFund/weifund-contracts#readme",
   "devDependencies": {
-      "dapple": "^0.7.2",
-      "ethdeploy": "git+https://github.com/SilentCicero/ethdeploy.git",
-      "ethdeploy-provider-http": "^0.1.0",
-      "ethdeploy-provider-zero-client": "^0.1.7",
-      "ethereumjs-tx": "^1.1.2",
-      "ethereumjs-util": "^4.5.0"
-  }
+    "babel-cli": "^6.10.1",
+    "babel-core": "^6.7.7",
+    "babel-eslint": "^6.0.4",
+    "babel-preset-es2015": "^6.6.0",
+    "babel-preset-stage-0": "^6.5.0",
+    "babelify": "^7.3.0",
+    "bignumber.js": "^2.4.0",
+    "browserify": "^13.1.1",
+    "chai": "^3.5.0",
+    "chaithereum": "^1.4.0",
+    "coveralls": "^2.11.9",
+    "cross-env": "^1.0.7",
+    "dapple": "^0.8.18",
+    "eslint": "^2.10.1",
+    "eslint-config-airbnb": "^9.0.1",
+    "eslint-import-resolver-webpack": "^0.2.4",
+    "eslint-plugin-import": "^1.8.0",
+    "eslint-plugin-jsx-a11y": "^1.2.0",
+    "eslint-plugin-react": "^5.1.1",
+    "ethdeploy": "^0.1.5",
+    "ethdeploy-provider-http": "^0.1.1",
+    "ethdeploy-provider-zero-client": "^0.1.9",
+    "ethereumjs-testrpc": "^2.0.8",
+    "ethereumjs-tx": "^1.1.2",
+    "ethereumjs-util": "^4.5.0",
+    "eventsource-polyfill": "^0.9.6",
+    "jsonpath": "^0.2.6",
+    "lint-staged": "^1.0.1",
+    "lodash": "^4.13.1",
+    "minimist": "^1.2.0",
+    "mocha": "^2.4.5",
+    "pre-commit": "^1.1.3",
+    "prompt": "^1.0.0",
+    "replace": "^0.3.0",
+    "replace-in-file": "^2.0.1",
+    "rimraf": "^2.5.2",
+    "sinon": "^2.0.0-pre",
+    "solium": "^0.1.16"
+  },
+  "babel": {
+    "presets": [
+      "es2015"
+    ]
+  },
+  "lint-staged": {
+    "lint:eslint": "*.js"
+  },
+  "eslintConfig": {
+    "parser": "babel-eslint",
+    "extends": "airbnb",
+    "env": {
+      "node": true,
+      "mocha": true,
+      "es6": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 6,
+      "sourceType": "module"
+    },
+    "rules": {
+      "import/no-unresolved": 2,
+      "comma-dangle": [
+        2,
+        "always-multiline"
+      ],
+      "indent": [
+        2,
+        2,
+        {
+          "SwitchCase": 1
+        }
+      ],
+      "no-console": 1,
+      "max-len": 0,
+      "prefer-template": 2,
+      "no-use-before-define": 0,
+      "newline-per-chained-call": 0,
+      "arrow-body-style": [
+        2,
+        "as-needed"
+      ]
+    }
+  },
+  "pre-commit": "lint:staged"
 }
