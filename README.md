@@ -7,7 +7,7 @@
   </a>
   <!-- devDependency Status -->
   <a href="https://david-dm.org/weifund/weifund-contracts#info=devDependencies">
-    <img src="https://david-dm.org/weifund/weifund-contracts/dev-status.svg" alt="devDependency Status" />
+    <img src="https://david-dm.org/weifund/weifund-contracts/status.svg" alt="devDependency Status" />
   </a>
   <!-- Build Status -->
   <a href="https://travis-ci.org/weifund/weifund-contracts">
