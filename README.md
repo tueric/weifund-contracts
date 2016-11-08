@@ -79,7 +79,7 @@ We communicate via [issues](https://github.com/weifund/weifund-contracts/issues)
 
 ## Licence
 
-This project is licensed under the MIT license, Copyright (c) 2016 weifund. For more information see LICENSE.md.
+This project is licensed under the MIT license, Copyright (c) 2016 weifund. For more information see LICENSE.md
 
 ```
 The MIT License
